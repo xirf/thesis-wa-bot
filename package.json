@@ -1,0 +1,53 @@
+{
+  "name": "botsimrs",
+  "version": "1.2.10",
+  "description": "whatsapp bot for simple message handler and notification",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "tsc && node ./dist/src/index.js",
+    "dev": "nodemon ./src/index.ts",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xirf/simrs-bot.git"
+  },
+  "keywords": [
+    "bot",
+    "bot-whatsapp"
+  ],
+  "author": "xirf",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xirf/simrs-bot/issues"
+  },
+  "homepage": "https://github.com/xirf/simrs-bot#readme",
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@types/node-cron": "^3.0.8",
+    "@types/pg": "^8.10.2",
+    "@whiskeysockets/baileys": "^6.5.0",
+    "dotenv": "^16.3.1",
+    "link-preview-js": "^3.0.5",
+    "node-cache": "^5.1.2",
+    "node-cron": "^3.0.2",
+    "pg": "^8.11.2",
+    "pg-hstore": "^2.3.4",
+    "pino": "^8.15.0",
+    "pino-pretty": "^10.2.0",
+    "pm2": "^5.3.0",
+    "qrcode-terminal": "^0.12.0",
+    "sequelize": "^6.32.1",
+    "sharp": "^0.32.5",
+    "ts-node": "^10.9.1",
+    "tsc-watch": "^6.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.9",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
+    "eslint": "^8.48.0",
+    "nodemon": "^3.0.1",
+    "typescript": "^5.1.6"
+  }
+}
