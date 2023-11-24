@@ -1,7 +1,5 @@
 import welcomeMessage from "./welcome.js";
 import type { ConversationFlow } from "../types/Command.d.ts";
-import regFlow from "./routes/regist/reg.flow.js";
-import scheduleFlow from "./routes/checkSchedule/schedule.flow.js";
 
 const conversationFlow: ConversationFlow = {
     "msg.welcome": {
@@ -21,9 +19,7 @@ const conversationFlow: ConversationFlow = {
     "end": {
         handler: async () => { return ({ text: "Terima kasih sudah selesai" }) },
     },
-    // spread the object to extract its properties
-    ...regFlow,
-    ...scheduleFlow,
+
 
 };
 

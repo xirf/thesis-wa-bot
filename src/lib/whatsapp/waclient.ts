@@ -1,9 +1,8 @@
 import { Boom } from '@hapi/boom'
+import { Reply } from '../../types/Client'
 import NodeCache from 'node-cache'
 import pino from '../../utils/logger'
-import { Reply } from '../../types/Client'
 import auth from './session'
-import db from '../../db/client'
 import qrCode from "qrcode-terminal"
 import log from '../../utils/logger'
 
@@ -25,7 +24,7 @@ const msgRetryCounterCache = new NodeCache()
 
 // start a connection
 const startSock = async () => {
-    const { state, saveState } = await auth(db)
+    const { state, saveState } = await auth()
     // fetch latest version of WA Web
     const { version, isLatest } = await fetchLatestBaileysVersion()
     log.info(`using WA v${version.join('.')}, isLatest: ${isLatest}`)

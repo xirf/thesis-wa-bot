@@ -25,7 +25,7 @@ let config = {
     db: {
         host: DB_HOST,
         port: parseInt(DB_PORT),
-        user: DB_USER,
+        username: DB_USER,
         password: DB_PASSWORD,
         database: DB_DATABASE,
     },
