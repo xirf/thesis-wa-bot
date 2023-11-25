@@ -1,58 +1,77 @@
 import { Boom } from '@hapi/boom'
 import logger from "../utils/logger";
+import type { Logger } from 'pino';
+import session from './session';
 
 import makeWASocket, {
-    delay,
     DisconnectReason,
+    Browsers,
     fetchLatestBaileysVersion,
     makeCacheableSignalKeyStore,
     isJidUser
 } from '@whiskeysockets/baileys'
 
-
-
+const log = logger.child({ module: 'client' }) as any;
+log.level = 'debug';
 class Client {
-    private socket: ReturnType<typeof makeWASocket> | null = null;
+    protected socket: ReturnType<typeof makeWASocket> | null = null;
 
     constructor() {
         this.socket = null;
     }
 
     public async connect() {
+        log.info("Starting WhatsApp client using Baileys " + await fetchLatestBaileysVersion() + "...");
+
+        const { clearState, saveState, state } = await session();
+
         const socket = makeWASocket(
             {
-                // auth
-                browser: "firefox",
-                logger: logger.child({ child: "wa" }),
+                logger: log,
+                auth: {
+                    creds: state.creds,
+                    keys: makeCacheableSignalKeyStore(state.keys, log),
+                },
+                browser: Browsers.appropriate("Firefox"),
+                shouldIgnoreJid: (jid) => !isJidUser(jid),
             }
         );
 
-        socket.ev.on("close", (reason) => {
-            if (reason === DisconnectReason.intentional) {
-                logger.info("Socket closed intentionally");
-            } else {
-                logger.info("Socket closed");
-            }
-        });
-
-        socket.ev.on("open", () => {
-            logger.info("Socket opened");
-        });
-
-        socket.ev.on("error", (error) => {
-            logger.error("Socket error", error);
-        });
-
-        await socket.connect();
-
         this.socket = socket;
+
+        socket.ev.on("connection.update", (update) => {
+            const { lastDisconnect, connection } = update;
+
+            if (connection == "connecting") log.info("Connecting to WhatsApp");
+            if (connection == "open") log.info("Connected to WhatsApp");
+
+            if (connection == "close") {
+                log.warn("Disconnected from WhatsApp", lastDisconnect);
+                if ((lastDisconnect?.error as Boom).output.statusCode !== DisconnectReason.loggedOut) {
+                    log.warn("Reconnecting in 2 seconds");
+                    setTimeout(() => {
+                        this.connect();
+                    }, 2000);
+                } else {
+                    log.fatal("Logged out, clearing session");
+                    clearState();
+                }
+            }
+
+
+
+        })
+
+        socket.ev.on("creds.update", saveState);
+
+        socket.ev.on("messages.upsert", async (m) => {
+            let msg = m.messages[ 0 ];
+            if (msg.key.fromMe) return;
+            socket.readMessages([ msg.key ])
+        })
+
     }
 
-    public async disconnect() {
-        if (this.socket) {
-            await this.socket.close();
-        }
-    }
 }
 
 export default new Client;
