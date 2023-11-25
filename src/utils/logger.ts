@@ -1,17 +1,19 @@
-import pino from 'pino';
+import pino from "pino";
 
-const log = pino({
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+const logger = pino({
+    level: process.env.LOG_LEVEL || "info",
     transport: {
         target: "pino-pretty",
         options: {
             colorize: true,
-            levelFirst: true,
-            ignore: 'pid,hostname',
-            hideObject: process.env.NODE_ENV == 'production',
+            ignore: "pid,hostname",
+            messageFormat: "{levelLabel} [{child}] {msg}",
+            translateTime: "SYS:standard",
+            hideObject: process.env.NODE_ENV === "production",
 
-        }
+        },
+
     }
-})
+});
 
-export default log;
+export default logger;
