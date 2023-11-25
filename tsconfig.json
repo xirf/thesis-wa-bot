@@ -20,9 +20,15 @@
     "noUnusedParameters": true,
     "skipLibCheck": true,
     "noImplicitAny": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "typeRoots": [
+      "/src/types/",
+    ]
   },
   "include": [
     "src/**/*",
+    "models/**/*"
   ],
   "exclude": [
     "node_modules",
