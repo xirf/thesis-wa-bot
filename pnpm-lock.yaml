@@ -29,6 +29,9 @@ dependencies:
   mysql2:
     specifier: ^3.6.5
     version: 3.6.5
+  node-cache:
+    specifier: ^5.1.2
+    version: 5.1.2
   pino:
     specifier: ^8.16.2
     version: 8.16.2
