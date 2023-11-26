@@ -7,7 +7,7 @@ const logger = pino({
         options: {
             colorize: true,
             ignore: "pid,hostname",
-            messageFormat: "{levelLabel} [{child}] {msg}",
+            messageFormat: " {if module}[{module}] {msg}",
             translateTime: "SYS:standard",
             hideObject: process.env.NODE_ENV === "production",
 

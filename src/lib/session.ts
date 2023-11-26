@@ -1,4 +1,3 @@
-import { Sequelize } from 'sequelize';
 import { BufferJSON, initAuthCreds, proto } from '@whiskeysockets/baileys';
 import type { AuthenticationCreds, SignalDataTypeMap } from '@whiskeysockets/baileys';
 import type { ClientAuth } from '../types/index';

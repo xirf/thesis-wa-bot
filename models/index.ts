@@ -1,11 +1,22 @@
-import { Sequelize, Model, Column, DataType, Table, HasMany } from "sequelize-typescript";
+import { Sequelize, Model, Column, DataType, Table, HasMany, BelongsTo } from "sequelize-typescript";
 import type { Dialect } from "sequelize/types";
 import dbConfig from "../config/config.json";
 import logger from "../src/utils/logger";
 
+
+const log = logger.child({ module: "DB" });
+
+const sequelize = new Sequelize({
+  username: dbConfig.username as string,
+  password: dbConfig.password || '',
+  database: dbConfig.database as string,
+  host: dbConfig.host as string,
+  dialect: dbConfig.dialect as Dialect,
+  logging: log.info.bind(log),
+});
 @Table({ timestamps: false })
 class Session extends Model {
-  @Column({ type: DataType.TEXT, primaryKey: true, unique: true })
+  @Column({ type: DataType.STRING(255), primaryKey: true, unique: true })
   sessionId!: string;
 
   @Column(DataType.TEXT)
@@ -46,11 +57,7 @@ class Dosen extends Model {
 
   @Column(DataType.CHAR(40))
   email!: string;
-
-  @HasMany(() => Ta)
-  ta!: Ta[];
 }
-
 @Table({ timestamps: false })
 class Ta extends Model {
   @Column({ type: DataType.INTEGER, primaryKey: true, unique: true })
@@ -62,11 +69,8 @@ class Ta extends Model {
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
   status!: boolean;
 
-  @Column({ type: DataType.ARRAY(DataType.INTEGER) })
-  pembimbing!: number[];
-
-  @HasMany(() => Pembimbing)
-  pembimbingDetails!: Pembimbing[];
+  @Column({ type: DataType.CHAR(20), allowNull: false, references: { model: Dosen, key: "nidn" } })
+  pembimbing!: Pembimbing[];
 }
 
 @Table({ timestamps: false })
@@ -84,18 +88,9 @@ class Pembimbing extends Model {
   id_dosen!: string;
 }
 
-const log = logger.child({ children: "DB" });
-
-const sequelize = new Sequelize({
-  username: dbConfig.username as string,
-  password: dbConfig.password || '',
-  database: dbConfig.database as string,
-  host: dbConfig.host as string,
-  dialect: dbConfig.dialect as Dialect,
-  logging: log.info.bind(log),
-});
 
 sequelize.addModels([ Session, Mahasiswa, Dosen, Ta, Pembimbing ]);
-sequelize.sync({ alter: true });
+sequelize.sync();
+
 
 export { sequelize, Session, Mahasiswa, Dosen, Ta, Pembimbing };

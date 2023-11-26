@@ -1,7 +1,8 @@
 import { Boom } from '@hapi/boom'
 import logger from "../utils/logger";
-import type { Logger } from 'pino';
 import session from './session';
+import qrcode from "qrcode";
+import Message from './message';
 
 import makeWASocket, {
     DisconnectReason,
@@ -58,16 +59,22 @@ class Client {
                 }
             }
 
-
-
+            if (update.qr) {
+                log.info("New QR code received, please scan");
+                qrcode.toString(update.qr, { type: "terminal", small: true }, (err) => {
+                    if (err) log.error(err);
+                });
+            }
         })
+
 
         socket.ev.on("creds.update", saveState);
 
         socket.ev.on("messages.upsert", async (m) => {
             let msg = m.messages[ 0 ];
             if (msg.key.fromMe) return;
-            socket.readMessages([ msg.key ])
+            const message = new Message(msg, socket);
+
         })
 
     }
