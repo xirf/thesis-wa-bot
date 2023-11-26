@@ -1,114 +1,97 @@
-import { BufferJSON, initAuthCreds, proto } from '@whiskeysockets/baileys';
-import type { AuthenticationCreds, SignalDataTypeMap } from '@whiskeysockets/baileys';
-import type { ClientAuth } from '../types/index';
-import { Session as SessionModel } from '../../models/index';
-import logger from '../utils/logger';
+import type { PrismaClient } from "@prisma/client"
+import { BufferJSON, initAuthCreds, proto } from "@whiskeysockets/baileys"
+import type { AuthenticationCreds, SignalDataTypeMap } from "@whiskeysockets/baileys"
+import type { ClientAuth } from "../types/index.d.ts"
 
-const log = logger.child({ module: 'session' });
+export default async (Database: PrismaClient): Promise<ClientAuth> => {
+    const fixFileName = (fileName: string): string => fileName.replace(/\//g, "__")?.replace(/:/g, "-")
 
-export default async (): Promise<ClientAuth> => {
-    // Define mapping from signal data type to key in keys object
-    const KEY_MAP: { [ T in keyof SignalDataTypeMap ]: string } = {
-        'pre-key': 'preKeys',
-        session: 'sessions',
-        'sender-key': 'senderKeys',
-        'app-state-sync-key': 'appStateSyncKeys',
-        'app-state-sync-version': 'appStateVersions',
-        'sender-key-memory': 'senderKeyMemory',
-    };
-
-    let creds: AuthenticationCreds;
-    let keys: unknown = {};
-
-    // Load creds from the database if they exist
-    const storedCreds = await SessionModel.findOne({ where: { sessionId: 'creds' } });
-
-    if (storedCreds && storedCreds.session) {
-        // If exists, load creds from the database
-        const parsedCreds = JSON.parse(storedCreds.session, BufferJSON.reviver);
-        creds = parsedCreds.creds as AuthenticationCreds;
-        keys = parsedCreds.keys;
-    } else {
-        // If not, generate new creds and store them
+    const writeData = async (data: unknown, fileName: string) => {
         try {
-            await SessionModel.create({
-                sessionId: 'creds',
-                session: JSON.stringify({ creds: initAuthCreds(), keys }, BufferJSON.replacer),
-            });
-        } catch (error) {
-            log.error('Error inserting session');
-            log.error(error);
-        }
-
-        creds = initAuthCreds();
+            const sessionId = fixFileName(fileName)
+            const session = JSON.stringify(data, BufferJSON.replacer)
+            await Database.session.upsert({
+                where: {
+                    sessionId
+                },
+                update: {
+                    sessionId,
+                    session
+                },
+                create: {
+                    sessionId,
+                    session
+                }
+            })
+        } catch { }
     }
 
-    // Save the current client state (credentials and keys) to the database.
-    const saveState = async (): Promise<void> => {
+    const readData = async (fileName: string) => {
         try {
-            await SessionModel.update(
-                { session: JSON.stringify({ creds, keys }, BufferJSON.replacer) },
-                { where: { sessionId: 'creds' } }
-            );
-        } catch (error) {
-            log.error('Error updating session:', error);
-            log.error(error);
+            const sessionId = fixFileName(fileName)
+            const data = await Database.session.findFirst({
+                where: {
+                    sessionId
+                }
+            })
+            return JSON.parse(data?.session, BufferJSON.reviver)
+        } catch {
+            return null
         }
-    };
+    }
+
+    const removeData = async (fileName: string): Promise<void> => {
+        try {
+            const sessionId = fixFileName(fileName)
+            await Database.session.delete({
+                where: {
+                    sessionId
+                }
+            })
+        } catch { }
+    }
+
+    const creds: AuthenticationCreds = (await readData("creds")) || initAuthCreds()
 
     return {
         state: {
             creds,
             keys: {
-                /**
-                 * Get specific keys from the client state.
-                 * @param type - Type of keys to retrieve.
-                 * @param ids - Array of key IDs to retrieve.
-                 * @returns A dictionary of retrieved keys.
-                 */
-                get: (type, ids) => {
-                    const key = KEY_MAP[ type ];
-
-                    return ids.reduce((dict: any, id) => {
-                        // @ts-ignore
-                        const value: unknown = keys[ key ]?.[ id ];
-                        if (value) {
-                            if (type === 'app-state-sync-key') dict[ id ] = proto.Message.AppStateSyncKeyData.fromObject(value);
-                            dict[ id ] = value;
-                        }
-                        return dict;
-                    }, {});
+                get: async (type, ids) => {
+                    const data: { [ _: string ]: SignalDataTypeMap[ typeof type ] } = {}
+                    await Promise.all(
+                        ids.map(async (id) => {
+                            let value = await readData(`${type}-${id}`)
+                            if (type === "app-state-sync-key" && value) value = proto.Message.AppStateSyncKeyData.fromObject(value)
+                            data[ id ] = value
+                        })
+                    )
+                    return data
                 },
-                /**
-                 * Set specific keys in the client state and save the updated state to the database.
-                 * @param data - Key-value pairs to set in the state.
-                 */
                 set: async (data) => {
-                    for (const _key in data) {
-                        const key = KEY_MAP[ _key as keyof SignalDataTypeMap ];
-                        // @ts-ignore
-                        keys[ key ] = keys[ key ] || {};
-                        // @ts-ignore
-                        Object.assign(keys[ key ], data[ _key ]);
+                    const tasks: Promise<void>[] = []
+                    for (const category in data) {
+                        for (const id in data[ category ]) {
+                            const value: unknown = data[ category ][ id ]
+                            const file = `${category}-${id}`
+                            tasks.push(value ? writeData(value, file) : removeData(file))
+                        }
                     }
                     try {
-                        await saveState();
-                    } catch (error) {
-                        log.error('Error saving state:', error);
-                        log.error(error);
-                    }
-                },
-            },
-        },
-        saveState,
-        // Clear the client state from the database.
-        clearState: async (): Promise<void> => {
-            try {
-                await SessionModel.destroy({ where: { sessionId: 'creds' } });
-            } catch (error) {
-                log.error('Error deleting session:', error);
-                log.error(error);
+                        await Promise.all(tasks)
+                    } catch { }
+                }
             }
         },
-    };
-};
+        saveState: async (): Promise<void> => {
+            try {
+                await writeData(creds, "creds")
+            } catch { }
+        },
+        clearState: async (): Promise<void> => {
+            try {
+                await Database.session.deleteMany({})
+            } catch { }
+        }
+    }
+}
