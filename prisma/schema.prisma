@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model ta {
+  id         Int          @id @default(autoincrement())
+  judul      String       @db.VarChar(255)
+  status     String?      @db.VarChar(255)
+  pembimbing pembimbing[]
+}
+
+model dosen {
+  id         Int          @id @default(autoincrement())
+  nama       String       @db.VarChar(255)
+  nidn       String       @db.VarChar(10)
+  email      String?      @db.VarChar(255)
+  telepon    String?      @db.VarChar(13)
+  pembimbing pembimbing[]
+}
+
+model mahasiswa {
+  id         Int     @id @default(autoincrement())
+  nama       String  @db.VarChar(255)
+  nim        String  @db.VarChar(20)
+  prodi      String  @db.VarChar(255)
+  tahun_ajar Int
+  email      String? @db.VarChar(255)
+  telepon    String? @db.VarChar(13)
+}
+
+model pembimbing {
+  id         Int                    @id @default(autoincrement())
+  id_ta      Int?
+  id_dosen   Int?
+  status_pbb pembimbing_status_pbb?
+  ta         ta?                    @relation(fields: [id_ta], references: [id], onDelete: Cascade, map: "pembimbing_ibfk_1")
+  dosen      dosen?                 @relation(fields: [id_dosen], references: [id], onDelete: Cascade, map: "pembimbing_ibfk_2")
+
+  @@index([id_dosen], map: "id_dosen")
+  @@index([id_ta], map: "id_ta")
+}
+
+model session {
+  id        String  @id @map("_id")
+  sessionId String  @unique(map: "Session_sessionId_key")
+  session   String? @db.Text
+}
+
+enum pembimbing_status_pbb {
+  Aktif
+  Non_Aktif @map("Non-Aktif")
+}
