@@ -11,6 +11,7 @@ import makeWASocket, {
     makeCacheableSignalKeyStore,
     isJidUser
 } from '@whiskeysockets/baileys'
+import Database from "../database"
 
 const log = logger.child({ module: 'client' }) as any;
 log.level = 'debug';
@@ -22,9 +23,9 @@ class Client {
     }
 
     public async connect() {
-        log.info("Starting WhatsApp client using Baileys " + await fetchLatestBaileysVersion() + "...");
+        log.info("Starting WhatsApp client using Baileys " + (await fetchLatestBaileysVersion()).version + "...");
 
-        const { clearState, saveState, state } = await session();
+        const { clearState, saveState, state } = await session(Database);
 
         const socket = makeWASocket(
             {
@@ -61,9 +62,8 @@ class Client {
 
             if (update.qr) {
                 log.info("New QR code received, please scan");
-                qrcode.toString(update.qr, { type: "terminal", small: true }, (err) => {
-                    if (err) log.error(err);
-                });
+                qrcode.toString(update.qr, { type: "terminal", small: true }).then(console.log).catch(log.error);
+
             }
         })
 
