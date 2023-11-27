@@ -9,9 +9,13 @@ datasource db {
 
 model ta {
   id         Int          @id @default(autoincrement())
+  id_mhs     Int?
   judul      String       @db.VarChar(255)
   status     String?      @db.VarChar(255)
   pembimbing pembimbing[]
+  mahasiswa  mahasiswa?   @relation(fields: [id_mhs], references: [id], onDelete: Cascade, map: "ta_ibfk_1")
+
+  @@index([id_mhs], map: "id_mhs")
 }
 
 model dosen {
@@ -31,6 +35,7 @@ model mahasiswa {
   tahun_ajar Int
   email      String? @db.VarChar(255)
   telepon    String? @db.VarChar(13)
+  ta         ta[]
 }
 
 model pembimbing {
@@ -46,9 +51,15 @@ model pembimbing {
 }
 
 model session {
-  id        String  @id @map("_id")
+  id        String  @id @default(cuid()) @map("_id")
   sessionId String  @unique(map: "Session_sessionId_key")
   session   String? @db.Text
+}
+
+model template {
+  id      Int    @id @default(autoincrement())
+  name    String @db.VarChar(255)
+  content String @db.Text
 }
 
 enum pembimbing_status_pbb {

@@ -12,6 +12,7 @@ import makeWASocket, {
     isJidUser
 } from '@whiskeysockets/baileys'
 import Database from "../database"
+import command from '../command';
 
 const log = logger.child({ module: 'client' }) as any;
 log.level = 'debug';
@@ -74,6 +75,7 @@ class Client {
             let msg = m.messages[ 0 ];
             if (msg.key.fromMe) return;
             const message = new Message(msg, socket);
+            await command(message);
 
         })
 
