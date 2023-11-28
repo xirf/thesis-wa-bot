@@ -1,6 +1,5 @@
-import type Message from "../../lib/message"
-import Database from "../../database"
-import cache from "../../cache/cache";
+import type Message from "../lib/message"
+import Database from "../database"
 
 export default async (msg: Message): Promise<void> => {
     let nim = msg.text;
@@ -9,8 +8,10 @@ export default async (msg: Message): Promise<void> => {
             nim: nim,
         },
         select: {
+            id: true,
             nama: true,
             prodi: true,
+            nim: true,
             ta: {
                 select: {
                     judul: true,
@@ -19,6 +20,8 @@ export default async (msg: Message): Promise<void> => {
                             dosen: {
                                 select: {
                                     nama: true,
+                                    telepon: true,
+                                    id: true,
                                 },
                             },
                             status_pbb: true,
@@ -32,22 +35,16 @@ export default async (msg: Message): Promise<void> => {
     if (!student) {
         msg.reply((await Database.template.findFirst({ where: { name: "nim.notfound" } })).content);
     } else {
-
-        let template = (await Database.template.findFirst({
-            where: {
-                name: "nim.confirmation"
-            }
-        })).content
+        let template = (await Database.template.findFirst({ where: { name: "nim.found" } })).content
 
         let data = {
             nama: student.nama,
             prodi: student.prodi,
             judul: student.ta[ 0 ].judul,
-            pembimbing: [ ...student.ta[ 0 ].pembimbing.map(v => v.dosen.nama) ].join(", "),
+            pembimbing: student.ta[ 0 ].pembimbing.map((v, i) => `${i + 1}. ${v.dosen.nama} (${v.status_pbb})`).join("\n"),
         }
 
         msg.reply(msg.parseTemplate(template, data));
-        cache.set(msg.sender, { event: "nim.await.confirmation" })
     }
     return;
 }

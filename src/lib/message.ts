@@ -1,5 +1,6 @@
 import { AnyMessageContent, proto, makeWASocket } from "@whiskeysockets/baileys";
 import { writeFileSync } from "fs";
+import Database from "../database";
 
 class Message {
     readonly state: any;
@@ -39,11 +40,9 @@ class Message {
         });
     }
 
-    public async sendText(text: string): Promise<void> {
+    public async sendText(text: string, jid: string): Promise<void> {
         this.read();
-        this.socket?.sendMessage(this.message.key.remoteJid, {
-            text: text,
-        });
+        this.socket?.sendMessage(jid, { text: text, });
     }
 
     public async read(): Promise<void> {
@@ -59,6 +58,10 @@ class Message {
         }
 
         return result;
+    }
+
+    async getTemplate(name: string): Promise<string> {
+        return (await Database.template.findFirst({ where: { name } })).content
     }
 }
 

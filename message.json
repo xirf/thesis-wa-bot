@@ -2,14 +2,14 @@
   "key": {
     "remoteJid": "6288989843040@s.whatsapp.net",
     "fromMe": false,
-    "id": "ED81C2F33BD539F031"
+    "id": "3C52B67AE99EABF182"
   },
-  "messageTimestamp": 1701094364,
+  "messageTimestamp": 1701182622,
   "pushName": "ankatama",
   "broadcast": false,
   "message": {
     "extendedTextMessage": {
-      "text": "21",
+      "text": "/p1 a",
       "contextInfo": {
         "expiration": 0,
         "ephemeralSettingTimestamp": "0",
@@ -23,7 +23,7 @@
         "senderKeyHash": "1q0FPxw+mgId5g==",
         "senderTimestamp": "1700282853",
         "recipientKeyHash": "AkHF8svlwOGOsw==",
-        "recipientTimestamp": "1701007895"
+        "recipientTimestamp": "1701094233"
       },
       "deviceListMetadataVersion": 2
     }
