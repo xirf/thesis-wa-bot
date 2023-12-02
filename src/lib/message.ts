@@ -59,10 +59,6 @@ class Message {
 
         return result;
     }
-
-    async getTemplate(name: string): Promise<string> {
-        return (await Database.template.findFirst({ where: { name } })).content
-    }
 }
 
 export default Message;

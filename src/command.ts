@@ -1,96 +1,53 @@
 import Message from "./lib/message";
 import cache from "./cache/cache";
-import nim from "./command/nim.check";
-import Database from "./database";
+import response from "./configs/response.json";
+import database from "./database";
+import { join } from "path";
+import logger from "./utils/logger";
+import type { Command } from "./types";
+
+const log = logger.child({ module: "command" });
 
 export default async (msg: Message) => {
-    if (cache.has(msg.sender)) {
-        let cacheData = cache.get(msg.sender)!;
-        switch ((cacheData as { event: string }).event) {
-            case "nim.check":
-                nim(msg);
-                break;
-            case "report.start":
+    let isLecturer = database.dosen.findFirst({ where: { telepon: { contains: msg.sender.split("@")[ 0 ].slice(-10) } } });
+    let cachedData: any = cache.get(msg.sender);
 
-                break;
-            default:
-                break;
+    // Check if there is a cached data
+    if (cachedData) {
+        try {
+            // Get the directory
+            let dir = cachedData.event.replaceAll(".", "/");
+
+            // Import the command file using dynamic import
+            let command: Command = await import(join(__dirname, "commands", dir, msg.command + ".js"))
+
+            // Run the command
+            if (command) command(msg, cache);
+        } catch (error) {
+            log.warn("Error when running command", { error });
         }
     }
 
+
+    // This part is for the default command
     switch (msg.command) {
         case "start":
-            let startTemplate = await msg.getTemplate("start");
-            msg.reply(startTemplate);
-            cache.set(msg.sender, { event: "nim.check" })
-
+            if (isLecturer) {
+                msg.reply(response.start.lecturer);
+                cache.set(msg.sender, { event: "nip.check" })
+            } else {
+                msg.reply(response.start.student);
+                cache.set(msg.sender, { event: "student.checknim" })
+            }
             break;
 
         case "ping":
             msg.reply("Pong!");
             break;
 
-        case "help":
-            let helpTemplate = await msg.getTemplate("help");
-            msg.reply(helpTemplate);
-            break;
-
-        case "p1":
-        case "p2":
-            let startReportTemplate = await msg.getTemplate("report.start");
-            let noPembimbing = await Database.pembimbing.findMany({
-                where: {
-                    tlp_mhs: msg.sender.split("@")[ 0 ].replace("+62", "0"),
-                },
-                select: {
-                    id: true,
-                    dosen: {
-                        select: {
-                            nama: true,
-                            telepon: true,
-                            id: true,
-                        },
-                    },
-                    ta: {
-                        select: {
-                            judul: true,
-                            mahasiswa: {
-                                select: {
-                                    nama: true,
-                                    nim: true,
-                                },
-                            }
-                        }
-                    }
-                },
-            });
-
-            if (noPembimbing.length === 0) {
-                msg.reply("Anda tidak memiliki mahasiswa bimbingan");
-                console.log(JSON.stringify(noPembimbing, null, 2))
-                break;
-            }
-
-            let pIndex = msg.command === "p1" ? 0 : 1;
-
-
-
-            msg.reply(startReportTemplate);
-            cache.set(msg.sender, {
-                event: "report.start", data: {
-                    judul: noPembimbing[ pIndex ].ta.judul,
-                    dosen: noPembimbing[ pIndex ].dosen.nama,
-                    telepon: noPembimbing[ pIndex ].dosen.telepon,
-                    nama: noPembimbing[ pIndex ].ta[ 0 ].mahasiswa.nama,
-                    nim: noPembimbing[ pIndex ].ta[ 0 ].mahasiswa.nim,
-                    template: "",
-                }
-            });
-
-            break;
-
         default:
             break;
     }
 };
+
 

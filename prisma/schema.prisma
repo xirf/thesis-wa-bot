@@ -57,12 +57,6 @@ model session {
   session   String? @db.Text
 }
 
-model template {
-  id      Int    @id @default(autoincrement())
-  name    String @db.VarChar(255)
-  content String @db.Text
-}
-
 enum pembimbing_status_pbb {
   Aktif
   Non_Aktif @map("Non-Aktif")

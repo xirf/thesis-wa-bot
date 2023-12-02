@@ -5,3 +5,5 @@ declare type ClientAuth = {
     saveState: () => Promise<void>
     clearState: () => Promise<void>
 }
+
+declare type Command = (message: Message, cache: any) => Promise<void>

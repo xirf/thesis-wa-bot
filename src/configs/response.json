@@ -1,0 +1,14 @@
+{
+    "start": {
+        "student": "Selamat datang di _BOT BIMBINGAN SKRIPSI_\n\nSilahkan masukkan NIM anda untuk memulai bimbingan skripsi\n\nContoh: 1708107010021",
+        "lecturer": "Nomor Anda sudah terdaftar sebagai dosen pembimbing. Silahkan masukkan NIM mahasiswa untuk memulai bimbingan skripsi\n\nContoh: 1708107010021"
+    },
+    "nimFound": "NIM ditemukan sebagai mahasiswa dengan nama: _{name}_\nJudul skripsi: *_{title}_*\n\nPembimbing1: _{lecturer}_\nPembimbing2: _{lecturer}_\n\nSilahkan pilih pembimbing yang akan dikirimkan laporan.\n\ncontoh:\n*1* untuk pembimbing 1\n*2* untuk pembimbing 2\n*semua* untuk kedua pembimbing",
+    "lecturerSet": "Pembimbing berhasil dipilih. Silahkan kirimkan laporan skripsi yang ingin dikirimkan\n\nuntuk mengirimkan ke kedua pembimbing, silahkan kirim *selesai*\nuntuk membatalkan, silahkan kirim *batal*",
+    "error": {
+        "notFound": "Maaf, NIM yang anda masukkan tidak terdaftar. Silahkan coba lagi",
+        "internalServerError": "Maaf, terjadi kesalahan pada server. Silahkan coba lagi",
+        "invalidFormat": "Maaf, format yang anda masukkan salah. Silahkan coba lagi",
+        "invalidLecturer": "Maaf, nomor yang anda masukkan tidak terdaftar sebagai dosen pembimbing. Silahkan coba lagi"
+    }
+}
