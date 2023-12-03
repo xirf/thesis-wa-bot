@@ -1,6 +1,6 @@
 import { Command } from "../../types";
 import Message from "../../lib/message";
-import response from "../../configs/response.json";
+import response from "../../../config/response.json";
 import logger from "../../utils/logger";
 
 const command: Command = async (msg: Message, cache) => {
@@ -36,7 +36,7 @@ const command: Command = async (msg: Message, cache) => {
 
 
     } catch (error) {
-        logger.warn("Error when setting lecturer", { error })
+        logger.warn({ error, msg: "Error when when setting lecturer" })
         msg.reply(response.error.internalServerError);
         return;
     }

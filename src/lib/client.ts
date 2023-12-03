@@ -24,7 +24,7 @@ class Client {
     }
 
     public async connect() {
-        log.info("Starting WhatsApp client using Baileys " + (await fetchLatestBaileysVersion()).version + "...");
+        console.log("Starting WhatsApp client using Baileys " + (await fetchLatestBaileysVersion()).version + "...");
 
         const { clearState, saveState, state } = await session(Database);
 
@@ -49,7 +49,7 @@ class Client {
             if (connection == "open") log.info("Connected to WhatsApp");
 
             if (connection == "close") {
-                log.warn("Disconnected from WhatsApp", lastDisconnect);
+                log.warn({ lastDisconnect }, "Disconnected from WhatsApp");
                 if ((lastDisconnect?.error as Boom).output.statusCode !== DisconnectReason.loggedOut) {
                     log.warn("Reconnecting in 2 seconds");
                     setTimeout(() => {

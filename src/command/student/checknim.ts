@@ -1,7 +1,8 @@
 import { Command } from "../../types";
 import database from "../../database";
 import Message from "../../lib/message";
-import response from "../../configs/response.json";
+import response from "../../../config/response.json";
+import logger from "../../utils/logger";
 
 const command: Command = async (msg: Message, cache) => {
     try {
@@ -66,6 +67,7 @@ const command: Command = async (msg: Message, cache) => {
         return;
     } catch (error) {
         msg.reply(response.error.internalServerError);
+        logger.warn({ error, msg: "Error when checking nim" })
         return;
     }
 }

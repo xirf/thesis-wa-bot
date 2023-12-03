@@ -1,6 +1,6 @@
 import Message from "./lib/message";
 import cache from "./cache/cache";
-import response from "./configs/response.json";
+import response from "../config/response.json";
 import database from "./database";
 import path, { join } from "path";
 import logger from "./utils/logger";
@@ -36,15 +36,18 @@ export default async (msg: Message) => {
     if (cachedData) {
         try {
             // Get the directory
-            let dir = cachedData.event?.replaceAll(".", path.sep);
+            let moduleDir = cachedData.event?.replaceAll(".", path.sep);
+            let rootDir = process.env.NODE_ENV == "production" ? "dist" : "src";
+            let fullDir = join(__dirname, rootDir, "command", moduleDir);
+
 
             // Import the command file using dynamic import
-            let command: Command = await import(join(__dirname, "command", dir)).then((module) => module.default);
+            let command: Command = await import(fullDir).then((module) => module.default);
 
             // Run the command
             if (command) command(msg, cache);
         } catch (error) {
-            log.warn("Error when running command", { error });
+            log.warn({ error, msg: "Error when running command" });
         }
     }
 };

@@ -72,7 +72,7 @@ class Message {
                 }
             })
         } catch (error) {
-            logger.warn("Failed to send reaction to: " + this.sender, error);
+            logger.warn({ error, msg: "Failed to send reaction" })
         }
     }
 }

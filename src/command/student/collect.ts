@@ -1,6 +1,6 @@
 import { Command } from "../../types";
 import Message from "../../lib/message";
-import response from "../../configs/response.json";
+import response from "../../../config/response.json";
 import logger from "../../utils/logger";
 
 const command: Command = async (msg: Message, cache: any) => {
@@ -25,6 +25,7 @@ const command: Command = async (msg: Message, cache: any) => {
 
         return await cache.set(msg.sender, cache.get(msg.sender));
     } catch (error) {
+        logger.warn({ error, msg: "Error when running command" })
         return await msg.reply(response.error.internalServerError);
     }
 }
@@ -49,7 +50,7 @@ async function sendToLecturer({ msg, msgs, cachedData }: { msg: Message, msgs: s
         });
 
     } catch (error) {
-        logger.warn("Error when sending message to lecturer", { error })
+        logger.warn({ error, msg: `Failed to send report to lecturer ${cachedData.lecturer.map((lecturer) => lecturer.name).join(", ")}` })
         msg.reply(response.error.internalServerError);
     }
 }
