@@ -1,6 +1,7 @@
 import { AnyMessageContent, proto, makeWASocket } from "@whiskeysockets/baileys";
 import { writeFileSync } from "fs";
 import Database from "../database";
+import logger from "../utils/logger";
 
 class Message {
     readonly state: any;
@@ -58,6 +59,20 @@ class Message {
         }
 
         return result;
+    }
+
+    public async react() {
+        try {
+            await this.read();
+            await this.socket.sendMessage(this.sender, {
+                react: {
+                    text: "👍",
+                    key: this.message.key
+                }
+            })
+        } catch (error) {
+            logger.warn("Failed to send reaction to: " + this.sender, error);
+        }
     }
 }
 
