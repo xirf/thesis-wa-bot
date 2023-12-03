@@ -1,6 +1,7 @@
 import { Command } from "../../types";
 import Message from "../../lib/message";
 import response from "../../configs/response.json";
+import logger from "../../utils/logger";
 
 const command: Command = async (msg: Message, cache: any) => {
     try {
@@ -9,14 +10,48 @@ const command: Command = async (msg: Message, cache: any) => {
         if (text.toLowerCase() == "batal") {
             msg.reply(response.canceled);
             cache.set(msg.sender, { data: cache.data })
+            return;
+        } else if (text.toLowerCase() == "selesai") {
+            if (cache.msgs == undefined || cache.msgs.length == 0)
+                return await msg.reply(response.error.emptyReport);
+
+            return await sendToLecturer({ msg, msgs: cache.msgs, cachedData: (cache.get(msg.sender)).data })
         }
 
+        await msg.react();
 
+        if (cache.msgs == undefined) cache.msgs = [];
+        cache.msgs.push(msg.text);
+
+        return await cache.set(msg.sender, cache.get(msg.sender));
     } catch (error) {
-        msg.reply(response.error.internalServerError);
-        return;
+        return await msg.reply(response.error.internalServerError);
     }
 }
 
+async function sendToLecturer({ msg, msgs, cachedData }: { msg: Message, msgs: string[], cachedData: any }) {
+    try {
+        let text = response.reportTemplate
+            .replace("{name}", cachedData.name)
+            .replace("{nim}", cachedData.nim)
+            .replace('{title}', cachedData.title)
+            .replace("{report}", msgs.map((msg, i) => `${i + 1}. ${msg}`).join("\n"))
+
+
+        cachedData.lecturer.forEach(async ({ telepon, name }: { telepon: string, name: string }) => {
+            let [ result ] = await msg.socket.onWhatsApp(telepon)
+            if (result.exists) {
+                await msg.sendText(result.jid, text);
+                await msg.reply(response.reportSent[ 0 ].replace("{lecturer}", name.substring(0, 20)))
+            } else {
+                logger.warn(`Lecturer ${name.substring(0, 10)} with number ${telepon} don't exist in Whatsapp`)
+            }
+        });
+
+    } catch (error) {
+        logger.warn("Error when sending message to lecturer", { error })
+        msg.reply(response.error.internalServerError);
+    }
+}
 
 export default command;

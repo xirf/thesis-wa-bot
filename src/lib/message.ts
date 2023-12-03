@@ -1,6 +1,5 @@
 import { AnyMessageContent, proto, makeWASocket } from "@whiskeysockets/baileys";
 import { writeFileSync } from "fs";
-import Database from "../database";
 import logger from "../utils/logger";
 
 class Message {
@@ -22,8 +21,6 @@ class Message {
         this.quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
         this.text = msg.message.conversation || msg.message?.imageMessage?.caption || msg.message?.videoMessage?.caption || msg.message?.extendedTextMessage?.text;
 
-        console.log(msg)
-
         if (this.text.startsWith(process.env.PREFIX || "/")) {
             const [ command, ...args ] = this.text.slice(process.env.PREFIX.length).split(" ");
 
@@ -32,16 +29,20 @@ class Message {
         }
     }
 
-    public reply(params: AnyMessageContent | string): void {
-        this.read();
-        if (typeof params === "string") params = { text: params };
+    public async reply(params: AnyMessageContent | string): Promise<void> {
+        return new Promise(async (resolve, _) => {
+            this.read();
+            if (typeof params === "string") params = { text: params };
 
-        this.socket?.sendMessage(this.message.key.remoteJid, params, {
-            quoted: this.message,
-        });
+            await this.socket?.sendMessage(this.message.key.remoteJid, params, {
+                quoted: this.message,
+            });
+
+            resolve();
+        })
     }
 
-    public async sendText(text: string, jid: string): Promise<void> {
+    public async sendText(jid: string, text: string): Promise<void> {
         this.read();
         this.socket?.sendMessage(jid, { text: text, });
     }
