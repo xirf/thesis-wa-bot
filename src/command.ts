@@ -37,8 +37,8 @@ export default async (msg: Message) => {
         try {
             // Get the directory
             let moduleDir = cachedData.event?.replaceAll(".", path.sep);
-            let rootDir = process.env.NODE_ENV == "production" ? "dist" : "src";
-            let fullDir = join(__dirname, rootDir, "command", moduleDir);
+            let fullDir = join(__dirname, "command", moduleDir);
+            console.log(fullDir);
 
 
             // Import the command file using dynamic import

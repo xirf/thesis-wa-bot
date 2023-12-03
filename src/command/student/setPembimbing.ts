@@ -10,7 +10,7 @@ const command: Command = async (msg: Message, cache) => {
         let cachedData: any = (cache.get(msg.sender)).data;
 
         // if there is no number, return error
-        if (!isNumber && msg.text?.toLowerCase() === "semua") {
+        if (!isNumber && msg.text?.toLowerCase() !== "semua") {
             msg.reply(response.error.invalidLecturer);
             return;
         }
