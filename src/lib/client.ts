@@ -15,7 +15,7 @@ import Database from "../database"
 import command from '../command';
 
 const log = logger.child({ module: 'client' }) as any;
-log.level = 'debug';
+log.level = 'warn';
 class Client {
     protected socket: ReturnType<typeof makeWASocket> | null = null;
 
