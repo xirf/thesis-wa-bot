@@ -16,10 +16,12 @@
     "canceled": "Perintah sudah dibatalkan, untuk mengulangi silahkan balas dengan */start*",
     "reportTemplate": {
         "student": "Laporan skripsi dari \nNama: _{name}_\nJudul skripsi: *_{title}_*\n\nIsi laporan:\n{report}\n\nJika laporan ini sudah sesuai silahkan kirim *selesai*\nJika tidak sesuai silahkan balas (reply/swipe) dan balas dengan masukan Anda",
-        "lecturer": "Anda mendapatkan laporan dari {lecturer}\n\n{report}\n\nSilahkan balas dengan me-reply (swipe) laporan ini."
+        "lecturer": "Anda mendapatkan laporan dari \nNama: _{lecturer}_\n\n{report}\n\nSilahkan balas dengan me-reply (swipe) laporan ini."
     },
     "reportCanceled": "Laporan dibatalkan, silahkan kirim /start untuk memulai kembali",
     "reportSent": "Laporan berhasil dikirimkan ke {lecturer}",
+    "reportAccepted": "Laporan telah disetujui oleh {lecturer}",
+    "reply": "Balasan dari \nNama: _{name}_\nNidn: *_{number}_*\n\n{reply}",
     "error": {
         "emptyReport": "Laporan tidak boleh kosong, silahkan kirim *batal* untuk membatalkan",
         "notFound": "Maaf, NIM yang anda masukkan tidak terdaftar. Silahkan coba lagi",
