@@ -1,32 +1,31 @@
 {
   "key": {
-    "remoteJid": "6288989843040@s.whatsapp.net",
+    "remoteJid": "6285150618287@s.whatsapp.net",
     "fromMe": false,
-    "id": "84734B6108BF5E9EB8"
+    "id": "3EB06B3FAD88DD604144BC"
   },
-  "messageTimestamp": 1701616308,
-  "pushName": "ankatama",
+  "messageTimestamp": 1701659804,
+  "pushName": "❤️",
   "broadcast": false,
   "message": {
     "extendedTextMessage": {
       "text": "selesai",
       "contextInfo": {
-        "expiration": 0,
-        "ephemeralSettingTimestamp": "0",
+        "ephemeralSettingTimestamp": "1701656794",
         "disappearingMode": {
           "initiator": "CHANGED_IN_CHAT"
         }
-      }
+      },
+      "inviteLinkGroupTypeV2": "DEFAULT"
     },
     "messageContextInfo": {
       "deviceListMetadata": {
-        "senderKeyHash": "1q0FPxw+mgId5g==",
-        "senderTimestamp": "1701580330",
+        "senderKeyHash": "5bzU7Xv25FPyxA==",
+        "senderTimestamp": "1701656057",
         "recipientKeyHash": "AkHF8svlwOGOsw==",
         "recipientTimestamp": "1701094233"
       },
       "deviceListMetadataVersion": 2
     }
-  },
-  "verifiedBizName": "ankatama"
+  }
 }

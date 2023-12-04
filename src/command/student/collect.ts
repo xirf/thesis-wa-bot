@@ -32,7 +32,7 @@ const command: Command = async (msg: Message, cache: any) => {
 
 async function sendToLecturer({ msg, msgs, cachedData }: { msg: Message, msgs: string[], cachedData: any }) {
     try {
-        let text = response.reportTemplate
+        let text = response.reportTemplate.student
             .replace("{name}", cachedData.name)
             .replace("{nim}", cachedData.nim)
             .replace('{title}', cachedData.title)

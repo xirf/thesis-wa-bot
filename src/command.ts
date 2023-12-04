@@ -15,9 +15,10 @@ export default async (msg: Message) => {
     // This part is for the default command
     switch (msg.command) {
         case "start":
+            cache.del(msg.sender)
             if (isLecturer) {
                 msg.reply(response.start.lecturer);
-                cache.set(msg.sender, { event: "nip.check" })
+                cache.set(msg.sender, { event: "lecturer.checknim" })
             } else {
                 msg.reply(response.start.student);
                 cache.set(msg.sender, { event: "student.checknim" })
@@ -38,8 +39,6 @@ export default async (msg: Message) => {
             // Get the directory
             let moduleDir = cachedData.event?.replaceAll(".", path.sep);
             let fullDir = join(__dirname, "command", moduleDir);
-            console.log(fullDir);
-
 
             // Import the command file using dynamic import
             let command: Command = await import(fullDir).then((module) => module.default);

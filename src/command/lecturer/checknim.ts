@@ -15,6 +15,7 @@ const command: Command = async (msg: Message, cache) => {
             select: {
                 nama: true,
                 nim: true,
+                telepon: true,
                 ta: {
                     select: {
                         judul: true,
@@ -42,6 +43,7 @@ const command: Command = async (msg: Message, cache) => {
         let reformattedData = {
             name: studentInfo.nama,
             nim: studentInfo.nim,
+            telepon: studentInfo.telepon,
             title: studentInfo.ta[ 0 ].judul,
             lecturer: studentInfo.ta[ 0 ].pembimbing.map((pembimbing) => {
                 return {
@@ -60,10 +62,10 @@ const command: Command = async (msg: Message, cache) => {
 
 
 
-        cache.set(msg.sender, { event: "student.setPembimbing", data: reformattedData })
+        cache.set(msg.sender, { event: "lecturer.sendreport", data: reformattedData })
 
         await msg.reply(message);
-        await msg.sendText(msg.sender, response.nimFound.student)
+        await msg.sendText(msg.sender, response.nimFound.lecturer)
         return;
     } catch (error) {
         msg.reply(response.error.internalServerError);

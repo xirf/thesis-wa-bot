@@ -24,7 +24,7 @@ class Client {
     }
 
     public async connect() {
-        console.log("Starting WhatsApp client using Baileys " + (await fetchLatestBaileysVersion()).version + "...");
+        logger.info("Starting WhatsApp client using Baileys " + (await fetchLatestBaileysVersion()).version + "...");
 
         const { clearState, saveState, state } = await session(Database);
 
@@ -45,8 +45,13 @@ class Client {
         socket.ev.on("connection.update", (update) => {
             const { lastDisconnect, connection } = update;
 
-            if (connection == "connecting") log.info("Connecting to WhatsApp");
-            if (connection == "open") log.info("Connected to WhatsApp");
+            if (connection == "connecting") {
+                logger.info("Connecting to WhatsApp at " + new Date().toLocaleString().split(", ")[ 1 ]);
+            };
+            if (connection == "open") {
+                logger.info("Connected to WhatsApp as " + socket.user?.name);
+                logger.info("Listening for messages...");
+            };
 
             if (connection == "close") {
                 log.warn({ lastDisconnect }, "Disconnected from WhatsApp");
@@ -75,6 +80,7 @@ class Client {
             let msg = m.messages[ 0 ];
             if (msg.key.fromMe) return;
             const message = new Message(msg, socket);
+            logger.info("New message received from " + message.sender);
             await command(message);
 
         })

@@ -19,7 +19,10 @@ class Message {
         this.socket = socket;
         this.sender = msg.key.remoteJid;
         this.quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-        this.text = msg.message.conversation || msg.message?.imageMessage?.caption || msg.message?.videoMessage?.caption || msg.message?.extendedTextMessage?.text;
+        this.text = msg.message.conversation
+            || msg.message?.imageMessage?.caption
+            || msg.message?.videoMessage?.caption
+            || msg.message?.extendedTextMessage?.text;
 
         if (this.text.startsWith(process.env.PREFIX || "/")) {
             const [ command, ...args ] = this.text.slice(process.env.PREFIX.length).split(" ");
@@ -43,9 +46,19 @@ class Message {
     }
 
     public async sendText(jid: string, text: string): Promise<void> {
-        this.read();
-        this.socket?.sendMessage(jid, { text: text, });
-    }
+        try {
+            this.read();
+            this.socket?.sendMessage(jid, { text: text, });            
+        } catch (error) {
+            logger.warn({
+                error: {
+                    message: error.message,
+                    stack: error.stack
+                },
+                msg: `Failed to send message to ${jid}`
+            })
+        }
+        }
 
     public async read(): Promise<void> {
         this.socket?.readMessages([ this.message.key ])
