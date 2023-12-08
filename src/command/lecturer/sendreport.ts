@@ -30,10 +30,11 @@ const command: Command = async (msg: Message, cache: any) => {
 
             let [ result ] = await msg.socket.onWhatsApp(cachedData.data.telepon)
             if (result.exists) {
-                console.log(result.jid)
                 await msg.sendText(result.jid, report);
                 await msg.reply(response.reportSent?.replace("{lecturer}", cachedData.data.name.substring(0, 20)))
             }
+
+            cache.set(msg.sender)
 
             return;
         }

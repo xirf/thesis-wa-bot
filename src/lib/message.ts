@@ -1,5 +1,4 @@
 import { AnyMessageContent, proto, makeWASocket } from "@whiskeysockets/baileys";
-import { writeFileSync } from "fs";
 import logger from "../utils/logger";
 
 class Message {
@@ -11,6 +10,7 @@ class Message {
     readonly text: string | null = null;
     readonly command: string | null = null;
     readonly args: string;
+    #prefix: string = process.env.PREFIX || "/";
 
     constructor(msg: proto.IWebMessageInfo, socket: ReturnType<typeof makeWASocket>) {
         this.message = msg;
@@ -22,8 +22,8 @@ class Message {
             || msg.message?.videoMessage?.caption
             || msg.message?.extendedTextMessage?.text;
 
-        if (this.text.startsWith(process.env.PREFIX || "/")) {
-            const [ command, ...args ] = this.text.slice(process.env.PREFIX.length).split(" ");
+        if (this.text.startsWith(this.#prefix)) {
+            const [ command, ...args ] = this.text.slice(this.#prefix.length).split(" ");
 
             this.command = command;
             this.args = args.join(" ");
@@ -46,7 +46,7 @@ class Message {
     public async sendText(jid: string, text: string): Promise<void> {
         try {
             this.read();
-            this.socket?.sendMessage(jid, { text: text, });            
+            this.socket?.sendMessage(jid, { text: text, });
         } catch (error) {
             logger.warn({
                 error: {
@@ -56,7 +56,7 @@ class Message {
                 msg: `Failed to send message to ${jid}`
             })
         }
-        }
+    }
 
     public async read(): Promise<void> {
         this.socket?.readMessages([ this.message.key ])

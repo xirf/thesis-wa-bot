@@ -2,7 +2,7 @@ import Message from "./lib/message";
 import cache from "./cache/cache";
 import response from "../config/response.json";
 import database from "./database";
-import path, { join, resolve } from "path";
+import path, { join } from "path";
 import logger from "./utils/logger";
 import type { Command } from "./types";
 
@@ -73,11 +73,9 @@ async function handleQuotedMessage(msg: Message, isLecturer: IsLecturer): Promis
 
         if (conversation && validQuotedMessage.some(txt => conversation.includes(txt))) {
             if (isLecturer != null) {
-                console.log("lecturer")
                 let res = await handleLecturer({ msg, conversation, isLecturer });
                 resolve(res);
             } else {
-                console.log("student")
                 let res = await handleStundent({ msg, conversation, isLecturer });
                 resolve(res);
             }
@@ -123,8 +121,6 @@ function handleLecturer({ msg, conversation, isLecturer }: HandleLecturer): Prom
             }
         });
 
-        console.log(telepon)
-
         if (!telepon) return resolve(false);
 
         const [ result ] = await msg.socket.onWhatsApp(telepon.telepon);
@@ -153,6 +149,8 @@ function handleLecturer({ msg, conversation, isLecturer }: HandleLecturer): Prom
 
 function handleStundent({ msg, conversation, isLecturer }: HandleLecturer): Promise<boolean> {
     return new Promise(async (resolve, _) => {
+        isLecturer;
+        
         const nameMatch = conversation.match(/Nama: _([^_]*)_/);
 
         const name = nameMatch ? nameMatch[ 1 ] : null;
@@ -178,8 +176,6 @@ function handleStundent({ msg, conversation, isLecturer }: HandleLecturer): Prom
 
 
         if (!telepon) return resolve(false);
-        console.log(telepon.telepon)
-        console.log(sender)
         const [ result ] = await msg.socket.onWhatsApp(telepon.telepon);
 
         if (result.exists) {
