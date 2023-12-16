@@ -32,8 +32,12 @@ const command: Command = async (msg: Message, cache) => {
         await msg.sendText(msg.sender, response.lecturerSet[ 1 ]);
         await msg.sendText(msg.sender, response.lecturerSet[ 2 ]);
 
-        cache.set(msg.sender, { event: "student.collect", data: cachedData })
+        cache.set(msg.sender, {
+            event: "student.collectReport",
+            data: cachedData
+        })
 
+        return;
 
     } catch (error) {
         logger.warn({ error, msg: "Error when when setting lecturer" })

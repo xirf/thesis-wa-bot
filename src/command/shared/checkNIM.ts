@@ -1,11 +1,10 @@
-import { Command } from "../../types";
 import database from "../../database";
 import Message from "../../lib/message";
 import response from "../../../config/response.json";
 import logger from "../../utils/logger";
 import templateParser from "../../utils/templateParser";
 
-const command: Command = async (msg: Message, cache) => {
+export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = 'student') => {
     try {
         let studentInfo = await database.mahasiswa.findFirst({
             where: {
@@ -61,10 +60,18 @@ const command: Command = async (msg: Message, cache) => {
         });
 
 
-        cache.set(msg.sender, { event: "student.setPembimbing", data: reformattedData })
+        cache.set(msg.sender, {
+            event: type == 'student' ? "student.sendReport" : "lecturer.giveReport",
+            data: reformattedData
+        })
+
 
         await msg.reply(message);
-        await msg.sendText(msg.sender, response.nimFound.student)
+        if (type == 'student')
+            await msg.sendText(msg.sender, response.nimFound.student);
+        else
+            await msg.sendText(msg.sender, response.nimFound.lecturer);
+
         return;
     } catch (error) {
         msg.reply(response.error.internalServerError);
@@ -72,6 +79,3 @@ const command: Command = async (msg: Message, cache) => {
         return;
     }
 }
-
-
-export default command;
