@@ -15,6 +15,7 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
             select: {
                 nama: true,
                 nim: true,
+                telepon: true,
                 ta: {
                     select: {
                         judul: true,
@@ -42,6 +43,7 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
         let reformattedData = {
             name: studentInfo.nama,
             nim: studentInfo.nim,
+            telepon: studentInfo.telepon,
             title: studentInfo.ta[ 0 ].judul,
             lecturer: studentInfo.ta[ 0 ].pembimbing.map((pembimbing) => {
                 return {

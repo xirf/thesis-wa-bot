@@ -23,6 +23,7 @@
     "reportAccepted": "Laporan telah disetujui oleh {lecturer}",
     "reportNotSent": "Laporan gagal dikirimkan ke {lecturer}\n\nAlasan: {reason}",
     "reply": "Balasan dari \nNama: _{name}_\nNidn: *_{number}_*\n\n{reply}",
+    "versionInfo": "Running on *{version}*\nHost: {host}\ncpu: {cpu}\nArchitecture: {arch}\nPlatform: {platform}\nNode version: {nodeVersion}\nUptime: {uptime}\nMemory usage: {memoryUsage}\nCPU usage: {cpuUsage}",
     "error": {
         "emptyReport": "Laporan tidak boleh kosong, silahkan kirim *batal* untuk membatalkan",
         "notFound": "Maaf, NIM yang anda masukkan tidak terdaftar. Silahkan coba lagi",

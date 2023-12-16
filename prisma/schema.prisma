@@ -14,7 +14,7 @@ model ta {
   status           String?            @db.VarChar(255)
   pembimbing       pembimbing[]
   mahasiswa        mahasiswa?         @relation(fields: [id_mhs], references: [id], onDelete: Cascade, map: "ta_ibfk_1")
-  HistoryBimbingan HistoryBimbingan[]
+  HistoryBimbingan historyBimbingan[]
 
   @@index([id_mhs], map: "id_mhs")
 }
@@ -26,7 +26,7 @@ model dosen {
   email            String?            @db.VarChar(255)
   telepon          String?            @db.VarChar(15)
   pembimbing       pembimbing[]
-  HistoryBimbingan HistoryBimbingan[]
+  HistoryBimbingan historyBimbingan[]
 }
 
 model mahasiswa {
@@ -38,7 +38,7 @@ model mahasiswa {
   email            String?            @db.VarChar(255)
   telepon          String?            @db.VarChar(15)
   ta               ta[]
-  HistoryBimbingan HistoryBimbingan[]
+  HistoryBimbingan historyBimbingan[]
 }
 
 model pembimbing {
@@ -54,18 +54,17 @@ model pembimbing {
   @@index([id_ta], map: "id_ta")
 }
 
-model HistoryBimbingan {
-  id         Int        @id @default(autoincrement())
-  date       DateTime   @default(now())
-  senderId   Int
-  senderType String
-  content    String
-  mahasiswa  mahasiswa? @relation(fields: [senderId], references: [id], map: "HistoryBimbingan_ibfk_1")
-  dosen      dosen?     @relation(fields: [senderId], references: [id], map: "HistoryBimbingan_ibfk_2")
-  ta         ta?        @relation(fields: [taId], references: [id])
-  taId       Int?
-
-  @@index([senderId, senderType], name: "senderIndex")
+model historyBimbingan {
+  id           Int       @id @default(autoincrement())
+  ta           ta        @relation(fields: [taId], references: [id])
+  taId         Int
+  mahasiswa    mahasiswa @relation(fields: [mahasiswaId], references: [id])
+  mahasiswaId  Int
+  senderNumber String
+  senderName   String
+  content      String
+  dosen        dosen?    @relation(fields: [dosenId], references: [id])
+  dosenId      Int?
 }
 
 model session {

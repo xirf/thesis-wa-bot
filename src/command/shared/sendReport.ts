@@ -3,15 +3,42 @@ import Message from "../../lib/message";
 import response from "../../../config/response.json";
 import logger from "../../utils/logger";
 import templateParser from "../../utils/templateParser";
+import database from "../../database";
 
 export async function sendReport(msg: Message, msgs: string[], cachedData: any, type: 'lecturer' | 'student' = 'student') {
     try {
-        let text = templateParser(response.reportTemplate.student, {
+        let text = templateParser(response.reportTemplate[ type ], {
             name: cachedData.name,
             nim: cachedData.nim,
             title: cachedData.title,
             report: msgs.map((msg, i) => `${i + 1}. ${msg}`).join("\n")
         });
+
+        if (type == 'lecturer') {
+            cachedData.name = cachedData.lecturer.filters(({ telepon }) => {
+                msg.sender.split("@")[ 0 ].slice(-8) == telepon.slice(-8)
+            }).map(({ name }) => name)[ 0 ];
+        }
+
+        database.historyBimbingan.create({
+            data: {
+                ta: {
+                    connect: {
+                        id: cachedData.title.id
+                    }
+                },
+                mahasiswa: {
+                    connect: {
+                        id: cachedData.nim
+                    }
+                },
+                senderName: cachedData.name,
+                senderNumber: msg.sender.split("@")[ 0 ],
+                content: msgs.map((msg, i) => `${i + 1}. ${msg}`).join("\n")
+            }
+        });
+
+        type == 'lecturer' ? cachedData.lecturer = [ cachedData ] : cachedData.lecturer;
 
 
         cachedData.lecturer
@@ -37,7 +64,7 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
                     await msg.sendText(result.jid, text);
                     await msg.reply(
                         templateParser(response.reportSent, {
-                            lecturer: name.substring(0, 20)
+                            lecturer: type == "lecturer" ? name.substring(0, 20) : "Pembimbing",
                         })
                     );
 

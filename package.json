@@ -1,6 +1,6 @@
 {
   "name": "thesis-wa-bot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Bot to help communication between lecturer and student",
   "main": "src/index.js",
   "scripts": {
