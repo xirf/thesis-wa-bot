@@ -8,34 +8,37 @@ datasource db {
 }
 
 model ta {
-  id         Int          @id @default(autoincrement())
-  id_mhs     Int?
-  judul      String       @db.VarChar(255)
-  status     String?      @db.VarChar(255)
-  pembimbing pembimbing[]
-  mahasiswa  mahasiswa?   @relation(fields: [id_mhs], references: [id], onDelete: Cascade, map: "ta_ibfk_1")
+  id               Int                @id @default(autoincrement())
+  id_mhs           Int?
+  judul            String             @db.VarChar(255)
+  status           String?            @db.VarChar(255)
+  pembimbing       pembimbing[]
+  mahasiswa        mahasiswa?         @relation(fields: [id_mhs], references: [id], onDelete: Cascade, map: "ta_ibfk_1")
+  HistoryBimbingan HistoryBimbingan[]
 
   @@index([id_mhs], map: "id_mhs")
 }
 
 model dosen {
-  id         Int          @id @default(autoincrement())
-  nama       String       @db.VarChar(255)
-  nidn       String       @db.VarChar(10)
-  email      String?      @db.VarChar(255)
-  telepon    String?      @db.VarChar(15)
-  pembimbing pembimbing[]
+  id               Int                @id @default(autoincrement())
+  nama             String             @db.VarChar(255)
+  nidn             String             @db.VarChar(10)
+  email            String?            @db.VarChar(255)
+  telepon          String?            @db.VarChar(15)
+  pembimbing       pembimbing[]
+  HistoryBimbingan HistoryBimbingan[]
 }
 
 model mahasiswa {
-  id         Int     @id @default(autoincrement())
-  nama       String  @db.VarChar(255)
-  nim        String  @db.VarChar(20)
-  prodi      String  @db.VarChar(255)
-  tahun_ajar Int
-  email      String? @db.VarChar(255)
-  telepon    String? @db.VarChar(15)
-  ta         ta[]
+  id               Int                @id @default(autoincrement())
+  nama             String             @db.VarChar(255)
+  nim              String             @db.VarChar(20)
+  prodi            String             @db.VarChar(255)
+  tahun_ajar       Int
+  email            String?            @db.VarChar(255)
+  telepon          String?            @db.VarChar(15)
+  ta               ta[]
+  HistoryBimbingan HistoryBimbingan[]
 }
 
 model pembimbing {
@@ -49,6 +52,20 @@ model pembimbing {
 
   @@index([id_dosen], map: "id_dosen")
   @@index([id_ta], map: "id_ta")
+}
+
+model HistoryBimbingan {
+  id         Int        @id @default(autoincrement())
+  date       DateTime   @default(now())
+  senderId   Int
+  senderType String
+  content    String
+  mahasiswa  mahasiswa? @relation(fields: [senderId], references: [id], map: "HistoryBimbingan_ibfk_1")
+  dosen      dosen?     @relation(fields: [senderId], references: [id], map: "HistoryBimbingan_ibfk_2")
+  ta         ta?        @relation(fields: [taId], references: [id])
+  taId       Int?
+
+  @@index([senderId, senderType], name: "senderIndex")
 }
 
 model session {

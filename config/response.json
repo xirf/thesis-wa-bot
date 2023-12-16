@@ -21,6 +21,7 @@
     "reportCanceled": "Laporan dibatalkan, silahkan kirim /start untuk memulai kembali",
     "reportSent": "Laporan berhasil dikirimkan ke {lecturer}",
     "reportAccepted": "Laporan telah disetujui oleh {lecturer}",
+    "reportNotSent": "Laporan gagal dikirimkan ke {lecturer}\n\nAlasan: {reason}",
     "reply": "Balasan dari \nNama: _{name}_\nNidn: *_{number}_*\n\n{reply}",
     "error": {
         "emptyReport": "Laporan tidak boleh kosong, silahkan kirim *batal* untuk membatalkan",

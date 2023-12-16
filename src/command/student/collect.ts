@@ -40,10 +40,18 @@ async function sendToLecturer({ msg, msgs, cachedData }: { msg: Message, msgs: s
 
 
         cachedData.lecturer.forEach(async ({ telepon, name }: { telepon: string, name: string }) => {
+            if (telepon.startsWith("0")) telepon = telepon.replace("0", "62");
             let [ result ] = await msg.socket.onWhatsApp(telepon)
+
+            if (!result || result.exists == undefined) {
+                logger.warn(`Lecturer ${name.substring(0, 10)} with number ${telepon} don't exist in Whatsapp`)
+                await msg.reply(response.reportNotSent.replace("{lecturer}", name.substring(0, 20)).replace("{reason}", "Nomor Whatsapp tidak ditemukan"))
+                return;
+            }
+
             if (result.exists) {
                 await msg.sendText(result.jid, text);
-                await msg.reply( response.reportSent .replace("{lecturer}", name.substring(0, 20)) )
+                await msg.reply(response.reportSent.replace("{lecturer}", name.substring(0, 20)))
             } else {
                 logger.warn(`Lecturer ${name.substring(0, 10)} with number ${telepon} don't exist in Whatsapp`)
             }
