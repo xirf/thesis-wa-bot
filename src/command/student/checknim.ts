@@ -3,6 +3,7 @@ import database from "../../database";
 import Message from "../../lib/message";
 import response from "../../../config/response.json";
 import logger from "../../utils/logger";
+import templateParser from "../../utils/templateParser";
 
 const command: Command = async (msg: Message, cache) => {
     try {
@@ -52,12 +53,12 @@ const command: Command = async (msg: Message, cache) => {
             })
         }
 
-        let message = response.nimFound.default
-            .replace("{name}", reformattedData.name)
-            .replace("{nim}", reformattedData.nim)
-            .replace("{title}", reformattedData.title)
-            .replace("{lecturer}", reformattedData.lecturer.map((lecturer, i) => `Pembimbing ${i + 1}: *${lecturer.name}* (${lecturer.nidn})`).join("\n"))
-
+        let message = templateParser(response.nimFound.default, {
+            name: reformattedData.name,
+            nim: reformattedData.nim,
+            title: reformattedData.title,
+            lecturer: reformattedData.lecturer.map((lecturer, i) => `Pembimbing ${i + 1}: *${lecturer.name}* (${lecturer.nidn})`).join("\n")
+        });
 
 
         cache.set(msg.sender, { event: "student.setPembimbing", data: reformattedData })

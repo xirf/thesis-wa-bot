@@ -2,6 +2,7 @@ import { Command } from "../../types";
 import Message from "../../lib/message";
 import response from "../../../config/response.json";
 import logger from "../../utils/logger";
+import templateParser from "../../utils/templateParser";
 
 const command: Command = async (msg: Message, cache) => {
     try {
@@ -21,17 +22,16 @@ const command: Command = async (msg: Message, cache) => {
         }
 
         await msg.reply(
-            response.lecturerSet[ 0 ]
-                .replace("{lecturer}",
-                    cachedData.lecturer
-                        .map((lecturer, i) => `${i > 0 ? "dan" : ""} *${lecturer.name}*`)
-                        .join(" ")
-                )
+            templateParser(response.lecturerSet[ 0 ], {
+                "lecturer": cachedData.lecturer
+                    .map((lecturer, i) => `${i > 0 ? "dan" : ""} *${lecturer.name}*`)
+                    .join(" ")
+            })
         );
+
         await msg.sendText(msg.sender, response.lecturerSet[ 1 ]);
         await msg.sendText(msg.sender, response.lecturerSet[ 2 ]);
 
-        // msg.reply(response.lecturerSet);
         cache.set(msg.sender, { event: "student.collect", data: cachedData })
 
 
