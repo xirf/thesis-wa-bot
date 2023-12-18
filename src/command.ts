@@ -10,6 +10,7 @@ import templateParser from "./utils/templateParser";
 import parseTime from "./utils/parseTime";
 import packageJson from "../package.json";
 import os from "node:os";
+import { readFileSync } from "fs";
 
 const log = logger.child({ module: "command" });
 
@@ -30,10 +31,10 @@ export default async (msg: Message) => {
             cache.del(msg.sender)
             if (isLecturer) {
                 msg.reply(response.start.lecturer);
-                cache.set(msg.sender, { event: "lecturer.checknim" })
+                cache.set(msg.sender, { event: "lecturer.checkNIM" })
             } else {
                 msg.reply(response.start.student);
-                cache.set(msg.sender, { event: "student.checknim" })
+                cache.set(msg.sender, { event: "student.checkNIM" })
             }
             return;
 
@@ -69,8 +70,13 @@ export default async (msg: Message) => {
             let moduleDir = cachedData.event?.replaceAll(".", path.sep);
             let fullDir = join(__dirname, "command", moduleDir);
 
+            if (!readFileSync(fullDir + ".ts")) {
+                log.warn({ msg: "Command file not found", fullDir });
+                msg.reply("Maaf, terjadi kesalahan pada sistem. Silahkan hubungi admin.");
+            }
             // Import the command file using dynamic import
             let command: Command = await import(fullDir).then((module) => module.default);
+
 
             // Run the command
             if (command) command(msg, cache);

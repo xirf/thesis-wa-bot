@@ -23,7 +23,7 @@ export default async function handleQuotedMessage(msg: Message, isLecturer: IsLe
         response.reportTemplate.lecturer.substring(0, 20),
         response.reportTemplate.student.substring(0, 20),
         response.reply.substring(0, 20)
-    ]
+    ] 
 
     if (conversation && validQuotedMessage.some(txt => conversation.includes(txt))) {
         const handler = isLecturer ? handleLecturer : handleStundent;
@@ -43,6 +43,7 @@ async function handleLecturer({ msg, conversation, isLecturer }: HandleLecturer)
     if (!name && (!title || !nim)) return false;
 
     const telepon = await findTelepon(name, nim, title);
+    console.log(telepon)
 
     return handleResponse(msg, telepon, isLecturer, "lecturer");
 }
@@ -88,7 +89,11 @@ async function findTelepon(name: string, nim: string, title: string) {
                 { ta: { some: { judul: title || "" } } }
             ]
         },
-        select: { telepon: true }
+        select: {
+            telepon: true,
+            nama: true,
+            nim: true
+        }
     });
 }
 
@@ -97,18 +102,23 @@ async function handleResponse(msg: Message, telepon: any, isLecturer: IsLecturer
 
     const [ result ] = await msg.socket.onWhatsApp(telepon.telepon);
 
+    console.log(result)
     if (result.exists) {
-        if (await checkComplete(msg, result, response, isLecturer)) return true;
+        // if (await checkComplete(msg, result, response, isLecturer)) return true;
+        console.log("===========================#")
 
         await sendReply(msg, {
-            nama: isLecturer.nama,
-            nidn: isLecturer.nidn,
+            nama: isLecturer ? telepon.nama : isLecturer.nama ,
+            nidn: isLecturer ? telepon.nim : isLecturer.nidn,
+            telepon: result.jid,
             text: msg.text,
             type: type
         }, response);
 
+        console.log("===========================!")
         return true;
     } else {
+        console.log("===========================?")
         await msg.reply(response.error.notFound);
         return true;
     }
@@ -130,8 +140,10 @@ async function sendReply(msg: Message, target: any, response: any) {
         number: target.nidn,
         reply: target.text
     })
+    
+    console.log("Target ", target)
 
-    await msg.sendText(target, answer);
+    await msg.sendText(target.telepon, answer);
     msg.reply(templateParser(response.reportSent, {
         lecturer: target.nama.substring(0, 20),
     }));

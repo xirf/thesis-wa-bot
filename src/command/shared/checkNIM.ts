@@ -18,6 +18,7 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
                 telepon: true,
                 ta: {
                     select: {
+                        id: true,
                         judul: true,
                         pembimbing: {
                             select: {
@@ -44,6 +45,7 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
             name: studentInfo.nama,
             nim: studentInfo.nim,
             telepon: studentInfo.telepon,
+            taId: studentInfo.ta[ 0 ].id,
             title: studentInfo.ta[ 0 ].judul,
             lecturer: studentInfo.ta[ 0 ].pembimbing.map((pembimbing) => {
                 return {
@@ -63,7 +65,7 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
 
 
         cache.set(msg.sender, {
-            event: type == 'student' ? "student.sendReport" : "lecturer.giveReport",
+            event: type == 'student' ? "student.setPembimbing" : "lecturer.giveReport",
             data: reformattedData
         })
 

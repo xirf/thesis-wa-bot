@@ -8,11 +8,13 @@ import database from "../../database";
 export async function sendReport(msg: Message, msgs: string[], cachedData: any, type: 'lecturer' | 'student' = 'student') {
     try {
         let text = templateParser(response.reportTemplate[ type ], {
-            name: cachedData.name,
-            nim: cachedData.nim,
-            title: cachedData.title,
+            name: cachedData.data.name,
+            nim: cachedData.data.nim,
+            title: cachedData.data.title,
             report: msgs.map((msg, i) => `${i + 1}. ${msg}`).join("\n")
         });
+
+
 
         if (type == 'lecturer') {
             cachedData.name = cachedData.lecturer.filters(({ telepon }) => {
@@ -20,28 +22,40 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
             }).map(({ name }) => name)[ 0 ];
         }
 
-        database.historyBimbingan.create({
+        console.log(cachedData)
+
+        let saved = await database.historyBimbingan.create({
             data: {
                 ta: {
                     connect: {
-                        id: cachedData.title.id
+                        // connect to same ta with given title
+                        id: parseInt(cachedData.data.taId)
                     }
                 },
                 mahasiswa: {
                     connect: {
-                        id: cachedData.nim
+                        id: parseInt(cachedData.data.nim)
                     }
                 },
-                senderName: cachedData.name,
+                senderName: cachedData.data.name,
                 senderNumber: msg.sender.split("@")[ 0 ],
                 content: msgs.map((msg, i) => `${i + 1}. ${msg}`).join("\n")
             }
-        });
+        })
 
-        type == 'lecturer' ? cachedData.lecturer = [ cachedData ] : cachedData.lecturer;
+        if (saved) {
+            console.log(saved)
+            logger.info(`Report from ${type} ${cachedData.data.name} with nim ${cachedData.data.nim} has been saved to database`);
+        } else {
+            console.log(saved)
+            logger.warn(`Failed to save report from ${type} ${cachedData.data.name} with nim ${cachedData.data.nim} to database`);
+        }
 
 
-        cachedData.lecturer
+        type == 'lecturer' ? cachedData.data.lecturer = [ cachedData.data ] : cachedData.data.lecturer;
+
+
+        cachedData.data.lecturer
             .forEach(async ({ telepon, name }: { telepon: string, name: string }) => {
                 if (telepon.startsWith("0")) telepon = telepon.replace("0", "62");
                 let [ result ] = await msg.socket.onWhatsApp(telepon);
@@ -74,7 +88,8 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
             });
 
     } catch (error) {
-        logger.warn({ error, msg: `Failed to send report to lecturer ${cachedData.lecturer.map((lecturer) => lecturer.name).join(", ")}` });
+        console.log(error)
+        logger.warn({ error, msg: `Failed to send report to ${type}` });
         msg.reply(response.error.internalServerError);
 
         return;
