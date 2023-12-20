@@ -24,7 +24,8 @@ class Client {
     }
 
     public async connect() {
-        logger.info("Starting WhatsApp client using Baileys " + (await fetchLatestBaileysVersion()).version + "...");
+        logger.info("Starting WhatsApp client...");
+        logger.info("Using Baileys Verison: " + (await fetchLatestBaileysVersion()).version + "...");
 
         const { clearState, saveState, state } = await session(Database);
 

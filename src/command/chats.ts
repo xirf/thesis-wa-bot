@@ -21,9 +21,10 @@ export default async function handleQuotedMessage(msg: Message, isLecturer: IsLe
     const conversation = msg.quoted.contextInfo?.quotedMessage?.conversation;
     const validQuotedMessage = [
         response.reportTemplate.lecturer.substring(0, 20),
-        response.reportTemplate.student.substring(0, 20),
-        response.reply.substring(0, 20)
-    ] 
+        response.reportTemplate.student.substring(0, 13),
+        response.reply.substring(0, 10)
+    ]
+
 
     if (conversation && validQuotedMessage.some(txt => conversation.includes(txt))) {
         const handler = isLecturer ? handleLecturer : handleStundent;
@@ -42,7 +43,7 @@ async function handleLecturer({ msg, conversation, isLecturer }: HandleLecturer)
 
     if (!name && (!title || !nim)) return false;
 
-    const telepon = await findTelepon(name, nim, title);
+    const telepon = await findTelepon(name, nim, title, isLecturer);
     console.log(telepon)
 
     return handleResponse(msg, telepon, isLecturer, "lecturer");
@@ -56,10 +57,29 @@ async function handleStundent({ msg, conversation, isLecturer }: HandleLecturer)
 
     if (!name) return false;
 
-    const telepon = await database.dosen.findFirst({
-        where: { nama: name },
-        select: { telepon: true },
-    });
+    let telepon: any;
+
+    if (isLecturer) {
+        telepon = await database.mahasiswa.findFirst({
+            where: {
+                nama: name
+            },
+            select: {
+                telepon: true,
+                nama: true,
+                nim: true
+            },
+        });
+    } else {
+        telepon = await database.dosen.findFirst({
+            where: { nama: name },
+            select: {
+                telepon: true,
+                nama: true,
+            },
+        });
+
+    }
 
     return handleResponse(msg, telepon, isLecturer, "student");
 }
@@ -80,21 +100,46 @@ function extractDetails(conversation: string) {
     };
 }
 
-async function findTelepon(name: string, nim: string, title: string) {
-    return await database.mahasiswa.findFirst({
-        where: {
+async function findTelepon(name: string, nim: string, title: string, isLecturer: any) {
+    if (isLecturer) {
+        let whereQuery: any = {
             nama: name,
             OR: [
-                { nim: nim || "" },
-                { ta: { some: { judul: title || "" } } }
+                { nim: nim }
             ]
-        },
-        select: {
-            telepon: true,
-            nama: true,
-            nim: true
         }
-    });
+        if (title)
+            whereQuery = {
+                nama: name,
+                OR: [
+                    { judul_skripsi: title }
+                ]
+            }
+
+
+        let res = await database.mahasiswa.findFirst({
+            where: whereQuery,
+            select: {
+                telepon: true,
+                nama: true,
+                nim: true
+            }
+        });
+
+        console.log("res: ", res)
+        return res;
+
+    } else {
+        return await database.dosen.findFirst({
+            where: {
+                nama: name,
+            },
+            select: {
+                telepon: true,
+                nama: true,
+            },
+        });
+    }
 }
 
 async function handleResponse(msg: Message, telepon: any, isLecturer: IsLecturer, type: string) {
@@ -102,23 +147,49 @@ async function handleResponse(msg: Message, telepon: any, isLecturer: IsLecturer
 
     const [ result ] = await msg.socket.onWhatsApp(telepon.telepon);
 
-    console.log(result)
     if (result.exists) {
-        // if (await checkComplete(msg, result, response, isLecturer)) return true;
-        console.log("===========================#")
+        if (await checkComplete(msg, result, response, isLecturer)) return true;
 
-        await sendReply(msg, {
-            nama: isLecturer ? telepon.nama : isLecturer.nama ,
-            nidn: isLecturer ? telepon.nim : isLecturer.nidn,
+        let replaceParams = {
+            nama: telepon?.nama,
+            nidn: telepon?.nim,
+            nim: telepon?.nim,
             telepon: result.jid,
             text: msg.text,
-            type: type
-        }, response);
+            type: type,
+            ta: null,
+            id: null,
+        }
 
-        console.log("===========================!")
+        if (!isLecturer) {
+            let _student = await database.mahasiswa.findFirst({
+                where: {
+                    telepon: {
+                        contains: msg.sender.split("@")[ 0 ].slice(-8)
+                    }
+                },
+                select: {
+                    nama: true,
+                    nim: true,
+                    id: true,
+                    ta: {
+                        select: {
+                            id: true
+                        },
+                    }
+                },
+            });
+
+            replaceParams.nama = _student.nama;
+            replaceParams.nim = _student.nim;
+            replaceParams.ta = _student.ta[ 0 ].id
+            replaceParams.id = _student.id
+        }
+
+        await sendReply(msg, replaceParams, response, isLecturer);
+
         return true;
     } else {
-        console.log("===========================?")
         await msg.reply(response.error.notFound);
         return true;
     }
@@ -134,17 +205,30 @@ async function checkComplete(msg: Message, result, response, isLecturer) {
     }
 }
 
-async function sendReply(msg: Message, target: any, response: any) {
-    const answer = templateParser(response.reply, {
-        name: target.nama,
-        number: target.nidn,
+async function sendReply(msg: Message, target: any, response: any, isLecturer) {
+    let responseTemplate = isLecturer ? response.reply : response.reply.replace("Nidn", "NIM")
+
+    const answer = templateParser(responseTemplate, {
+        name: isLecturer ? isLecturer.nama : target.nama,
+        number: isLecturer ? target.nidn : target.nim,
         reply: target.text
     })
-    
-    console.log("Target ", target)
+
+    await database.historyBimbingan.create({
+        data: {
+            mahasiswa: {
+                connect: {
+                    id: target.id ?? parseInt(target.nim)
+                }
+            },
+            content: target.text,
+            senderName: isLecturer ? isLecturer.nama : target.nama,
+            senderNumber: msg.sender.split("@")[ 0 ],
+        }
+    })
 
     await msg.sendText(target.telepon, answer);
     msg.reply(templateParser(response.reportSent, {
-        lecturer: target.nama.substring(0, 20),
+        lecturer: isLecturer ? target?.nama : "Dosen Pembimbing",
     }));
 }

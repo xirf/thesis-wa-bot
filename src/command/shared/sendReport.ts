@@ -26,12 +26,6 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
 
         let saved = await database.historyBimbingan.create({
             data: {
-                ta: {
-                    connect: {
-                        // connect to same ta with given title
-                        id: parseInt(cachedData.data.taId)
-                    }
-                },
                 mahasiswa: {
                     connect: {
                         id: parseInt(cachedData.data.nim)
