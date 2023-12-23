@@ -9,7 +9,7 @@ class Message {
     readonly quoted: proto.Message.IExtendedTextMessage | null = null;
     readonly text: string | null = null;
     readonly command: string | null = null;
-    readonly args: string;
+    readonly arg: string;
     #prefix: string = process.env.PREFIX || "/";
 
     constructor(msg: proto.IWebMessageInfo, socket: ReturnType<typeof makeWASocket>) {
@@ -26,7 +26,7 @@ class Message {
             const [ command, ...args ] = this.text.slice(this.#prefix.length).split(" ");
 
             this.command = command;
-            this.args = args.join(" ");
+            this.arg = args.join(" ");
         }
     }
 

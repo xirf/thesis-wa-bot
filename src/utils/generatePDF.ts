@@ -6,7 +6,7 @@ export default async function (HTML: string): Promise<Buffer> {
         try {
             const browser = await puppetter.launch({
                 // adjust for minimal setting to generate PDF
-                headless: true,
+                headless: "new",
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',

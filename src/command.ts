@@ -11,6 +11,7 @@ import parseTime from "./utils/parseTime";
 import packageJson from "../package.json";
 import os from "node:os";
 import { readFileSync } from "fs";
+import history from "./command/history";
 
 const log = logger.child({ module: "command" });
 
@@ -41,6 +42,39 @@ export default async (msg: Message) => {
         case "ping":
             msg.reply("Pong!");
             return;
+
+        case "history":
+        case "histori":
+            let whereQuery: any = {
+                where: {
+                    telepon: {
+                        contains: msg.sender.split("@")[ 0 ].slice(-10)
+                    }
+                }
+            };
+            if (isLecturer) {
+                let mshid = msg.arg
+                if (!mshid) {
+                    msg.reply(response.error.notFound);
+                    return;
+                }
+                whereQuery.where = {
+                    nim: mshid
+                }
+            }
+            let mhsid = await database.mahasiswa.findFirst({
+                ...whereQuery,
+                select: {
+                    id: true
+                }
+            });
+
+            if (!mhsid || !mhsid.id) {
+                msg.reply(response.error.notFound);
+                return;
+            }
+            history(msg, mhsid.id);
+            break;
 
         case "dev-version":
             let msgText = templateParser(response.versionInfo, {
