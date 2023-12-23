@@ -37,7 +37,7 @@
     "pdfkit": "^0.14.0",
     "pino": "^8.17.1",
     "pino-pretty": "^10.3.0",
-    "prince": "^1.11.1",
+    "puppeteer": "^21.6.1",
     "qrcode": "^1.5.3",
     "qrcode-terminal": "^0.12.0",
     "reflect-metadata": "^0.1.14",

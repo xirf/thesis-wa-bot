@@ -31,6 +31,7 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
                         id: parseInt(cachedData.data.nim)
                     }
                 },
+                type: type == 'lecturer' ? 'pembimbing' : 'mahasiswa',
                 senderName: cachedData.data.name,
                 senderNumber: msg.sender.split("@")[ 0 ],
                 content: msgs.map((msg, i) => `${i + 1}. ${msg}`).join("\n")

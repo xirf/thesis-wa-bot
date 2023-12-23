@@ -222,6 +222,7 @@ async function sendReply(msg: Message, target: any, response: any, isLecturer) {
                 }
             },
             content: target.text,
+            type: isLecturer ? "pembimbing" : "mahasiswa",
             senderName: isLecturer ? isLecturer.nama : target.nama,
             senderNumber: msg.sender.split("@")[ 0 ],
         }

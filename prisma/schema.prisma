@@ -62,6 +62,7 @@ model historyBimbingan {
   content      String
   dosen        dosen?    @relation(fields: [dosenId], references: [id])
   dosenId      Int?
+  type         String    @default("mahasiswa")
   createdAt    DateTime  @default(now())
 }
 
