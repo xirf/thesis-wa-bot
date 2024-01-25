@@ -17,7 +17,7 @@ class Message {
         this.socket = socket;
         this.sender = msg.key.remoteJid;
         this.quoted = msg.message?.extendedTextMessage;
-        this.text = msg.message.conversation
+        this.text = msg.message?.conversation
             || msg.message?.imageMessage?.caption
             || msg.message?.videoMessage?.caption
             || msg.message?.extendedTextMessage?.text;

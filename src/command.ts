@@ -52,6 +52,7 @@ export default async (msg: Message) => {
                     }
                 }
             };
+
             if (isLecturer) {
                 let mshid = msg.arg
                 if (!mshid) {
@@ -62,17 +63,20 @@ export default async (msg: Message) => {
                     nim: mshid
                 }
             }
+
             let mhsid = await database.mahasiswa.findFirst({
                 ...whereQuery,
                 select: {
                     id: true
-                }
+                },                
             });
 
             if (!mhsid || !mhsid.id) {
+                console.log("================>")
                 msg.reply(response.error.notFound);
                 return;
             }
+
             history(msg, mhsid.id);
             break;
 

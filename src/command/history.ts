@@ -14,7 +14,7 @@ export default (msg: Message, MahasiswaID: number): Promise<void> => {
                     mahasiswaId: MahasiswaID
                 },
                 orderBy: {
-                    createdAt: "desc"
+                    createdAt: "asc"
                 }
             })
 
@@ -35,6 +35,9 @@ export default (msg: Message, MahasiswaID: number): Promise<void> => {
                 } else {
                     chat = readFileSync(path.join(__dirname, "../../misc/lecturer.html"), "utf-8")
                 }
+
+
+                content = content.replace(/(?:\r\n|\r|\n)/g, "<br>")
 
                 chats += chat.replace("{{message}}", content)
                     .replace("{{time}}", createdAt.toLocaleString())

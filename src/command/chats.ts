@@ -108,13 +108,25 @@ async function findTelepon(name: string, nim: string, title: string, isLecturer:
                 { nim: nim }
             ]
         }
-        if (title)
+
+        if (title) {
+
+            let ta = await database.ta.findFirst({
+                where: {
+                    judul: title
+                },
+                select: {
+                    id_mhs: true
+                }
+            })
+
             whereQuery = {
                 nama: name,
                 OR: [
-                    { judul_skripsi: title }
+                    { id: ta?.id_mhs }
                 ]
             }
+        }
 
 
         let res = await database.mahasiswa.findFirst({
@@ -126,7 +138,6 @@ async function findTelepon(name: string, nim: string, title: string, isLecturer:
             }
         });
 
-        console.log("res: ", res)
         return res;
 
     } else {
