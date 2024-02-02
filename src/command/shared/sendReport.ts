@@ -43,10 +43,8 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
         })
 
         if (saved) {
-            console.log(saved)
             logger.info(`Report from ${type} ${cachedData.data.name} with nim ${cachedData.data.nim} has been saved to database`);
         } else {
-            console.log(saved)
             logger.warn(`Failed to save report from ${type} ${cachedData.data.name} with nim ${cachedData.data.nim} to database`);
         }
 
@@ -87,7 +85,6 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
             });
 
     } catch (error) {
-        console.log(error)
         logger.warn({ error, msg: `Failed to send report to ${type}` });
         msg.reply(response.error.internalServerError);
 
