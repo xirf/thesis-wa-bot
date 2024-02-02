@@ -45,7 +45,6 @@ model pembimbing {
   id_ta      Int?
   id_dosen   Int?
   status_pbb pembimbing_status_pbb?
-  tlp_mhs    String?                @db.VarChar(15)
   ta         ta?                    @relation(fields: [id_ta], references: [id], onDelete: Cascade, map: "pembimbing_ibfk_1")
   dosen      dosen?                 @relation(fields: [id_dosen], references: [id], onDelete: Cascade, map: "pembimbing_ibfk_2")
 

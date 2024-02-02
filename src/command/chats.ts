@@ -44,7 +44,6 @@ async function handleLecturer({ msg, conversation, isLecturer }: HandleLecturer)
     if (!name && (!title || !nim)) return false;
 
     const telepon = await findTelepon(name, nim, title, isLecturer);
-    console.log(telepon)
 
     return handleResponse(msg, telepon, isLecturer, "lecturer");
 }
@@ -67,7 +66,8 @@ async function handleStundent({ msg, conversation, isLecturer }: HandleLecturer)
             select: {
                 telepon: true,
                 nama: true,
-                nim: true
+                nim: true,
+                id: true
             },
         });
     } else {
@@ -80,6 +80,8 @@ async function handleStundent({ msg, conversation, isLecturer }: HandleLecturer)
         });
 
     }
+
+    console.log("From handleStudent", telepon)
 
     return handleResponse(msg, telepon, isLecturer, "student");
 }
@@ -134,7 +136,8 @@ async function findTelepon(name: string, nim: string, title: string, isLecturer:
             select: {
                 telepon: true,
                 nama: true,
-                nim: true
+                nim: true,
+                id: true
             }
         });
 
@@ -169,7 +172,7 @@ async function handleResponse(msg: Message, telepon: any, isLecturer: IsLecturer
             text: msg.text,
             type: type,
             ta: null,
-            id: null,
+            id: telepon?.id,
         }
 
         if (!isLecturer) {
@@ -197,6 +200,7 @@ async function handleResponse(msg: Message, telepon: any, isLecturer: IsLecturer
             replaceParams.id = _student.id
         }
 
+        console.log(replaceParams)
         await sendReply(msg, replaceParams, response, isLecturer);
 
         return true;
@@ -218,6 +222,8 @@ async function checkComplete(msg: Message, result, response, isLecturer) {
 
 async function sendReply(msg: Message, target: any, response: any, isLecturer) {
     let responseTemplate = isLecturer ? response.reply : response.reply.replace("Nidn", "NIM")
+
+    console.log(target)
 
     const answer = templateParser(responseTemplate, {
         name: isLecturer ? isLecturer.nama : target.nama,

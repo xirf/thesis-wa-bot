@@ -22,14 +22,18 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
             }).map(({ name }) => name)[ 0 ];
         }
 
-        console.log(cachedData)
+        let mhsid = await database.mahasiswa.findFirst({
+            where: {
+                nim: cachedData.data.nim
+            }
+        })
 
         let saved = await database.historyBimbingan.create({
             data: {
                 mahasiswa: {
                     connect: {
-                        id: parseInt(cachedData.data.nim)
-                    }
+                        id: mhsid.id
+                    },
                 },
                 type: type == 'lecturer' ? 'pembimbing' : 'mahasiswa',
                 senderName: cachedData.data.name,
