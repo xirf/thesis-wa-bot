@@ -8,12 +8,12 @@ datasource db {
 }
 
 model ta {
-  id               Int                @id @default(autoincrement())
-  id_mhs           Int?
-  judul            String             @db.VarChar(255)
-  status           String?            @db.VarChar(255)
-  pembimbing       pembimbing[]
-  mahasiswa        mahasiswa?         @relation(fields: [id_mhs], references: [id], onDelete: Cascade, map: "ta_ibfk_1")
+  id         Int          @id @default(autoincrement())
+  id_mhs     Int?
+  judul      String       @db.VarChar(255)
+  status     String?      @db.VarChar(255)
+  pembimbing pembimbing[]
+  mahasiswa  mahasiswa?   @relation(fields: [id_mhs], references: [id], onDelete: Cascade, map: "ta_ibfk_1")
 
   @@index([id_mhs], map: "id_mhs")
 }
@@ -63,6 +63,13 @@ model historyBimbingan {
   dosenId      Int?
   type         String    @default("mahasiswa")
   createdAt    DateTime  @default(now())
+}
+
+model user {
+  id       Int    @id @default(autoincrement())
+  username String @db.VarChar(20)
+  password String @db.VarChar(100)
+  name     String @db.VarChar(50)
 }
 
 model session {
