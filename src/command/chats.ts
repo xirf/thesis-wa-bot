@@ -155,10 +155,11 @@ async function findTelepon(name: string, nim: string, title: string, isLecturer:
 
 async function handleResponse(msg: Message, telepon: any, isLecturer: IsLecturer, type: string) {
     if (!telepon) return false;
+    if(telepon?.telepon.startsWith("08")) telepon.telepon = telepon.telepon.replace("0", "62")
 
     const [ result ] = await msg.socket.onWhatsApp(telepon.telepon);
 
-    if (result.exists) {
+    if (result?.exists != undefined && result.exists) {
         if (await checkComplete(msg, result, response, isLecturer)) return true;
 
         let replaceParams = {
@@ -201,7 +202,7 @@ async function handleResponse(msg: Message, telepon: any, isLecturer: IsLecturer
 
         return true;
     } else {
-        await msg.reply(response.error.notFound);
+        await msg.reply(response.error.numberInvalid);
         return true;
     }
 }
