@@ -29,8 +29,10 @@
     "@prisma/client": "^5.7.0",
     "@types/qrcode": "^1.5.5",
     "@whiskeysockets/baileys": "^6.5.0",
+    "body-parser": "^1.20.2",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-handlebars": "^7.1.2",
     "jimp": "^0.22.10",
     "link-preview-js": "^3.0.5",
     "mysql2": "^3.6.5",
@@ -45,11 +47,14 @@
     "ts-node-dev": "^2.0.0"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.19.5",
     "@types/node": "^20.10.5",
     "@types/validator": "^13.11.7",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
+    "cookie-parser": "^1.4.6",
     "eslint": "^8.56.0",
+    "jsonwebtoken": "^9.0.2",
     "prisma": "^5.7.0",
     "typescript": "^5.3.3"
   }
