@@ -3,7 +3,9 @@ const R = express.Router()
 
 
 R.get('/', (_req: express.Request, res: express.Response) => {
-    res.render('index')
+    res.render('index', {
+        layout: "dashboard"
+    })
 })
 
 
