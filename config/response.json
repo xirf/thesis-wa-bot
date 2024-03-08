@@ -26,6 +26,7 @@
     "versionInfo": "Running on *{version}*\nHost: {host}\ncpu: {cpu}\nArchitecture: {arch}\nPlatform: {platform}\nNode version: {nodeVersion}\nUptime: {uptime}\nMemory usage: {memoryUsage}\nCPU usage: {cpuUsage}",
     "history": "Berikt adalah riwayat bimbingan yang diminta.",
     "error": {
+        "numberInvalid": "Maaf, nomor telepon tujuan tidak valid. Ini bisa terjadi karena nomor whatsapp yang mengirimkan laporan berbeda dengan yang ada pada sistem",
         "historyNotFound": "Maaf, riwayat bimbingan tidak ditemukan. Silahkan coba lagi",
         "emptyReport": "Laporan tidak boleh kosong, silahkan kirim *batal* untuk membatalkan",
         "notFound": "Maaf, NIM yang anda masukkan tidak terdaftar. Silahkan coba lagi",
