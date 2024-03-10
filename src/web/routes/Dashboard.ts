@@ -1,26 +1,63 @@
-import { FastifyInstance } from 'fastify'
-import database from "./../../database"
+import Express, { Request, Response } from "express"
+import database from "../../database"
 
-export default async function routes(fastify: FastifyInstance, options: Record<string, unknown>) {
-    fastify.get('/', async (request, reply) => {
-        const mahasiswaData = await database.mahasiswa.findMany()
-        const dosenData = await database.dosen.findMany()
-        return reply.view("index.ejs", {
-            data: [
-                {
-                    title: "Data Mahasiswa",
-                    header1: "NIM",
-                    data: mahasiswaData
-                },
-                {
-                    title: "Data Dosen",
-                    header1: "NIDN",
-                    data: dosenData
+
+const router = Express.Router();
+
+router.get("/", async (_req: Request, res: Response) => {
+
+    const mahasiswa = await database.mahasiswa.findMany();
+    const dosen = await database.dosen.findMany();
+
+
+    res.render("dashboard", {
+        title: "Dashboard",
+        data: [
+            {
+                title: "Data Mahasiswa",
+                header1: "NIM",
+                type: "mahasiswa",
+                data: mahasiswa
+            },
+            {
+                title: "Data Dosen",
+                type: "dosen",
+                header1: "NIDN",
+                data: dosen
+            }
+        ]
+    });
+});
+
+router.post("/update", async (req: Request, res: Response) => {
+    try {
+        const data = req.body;
+
+        if (data.type === "mahasiswa") {
+            await database.mahasiswa.update({
+                where: { id: parseInt(data.id) },
+                data: {
+                    nama: data.nama,
+                    telepon: data.telepon
+
                 }
-            ]
-        }, {
-            layout:
-                "/layouts/dashboard.ejs"
-        })
-    })
-}
+            });
+        }
+        else {
+            await database.dosen.update({
+                where: { id: parseInt(data.id) },
+                data
+            });
+
+        }
+
+        
+        res.json({ message: "Data berhasil diupdate" });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+export default router;
+

@@ -1,40 +1,40 @@
+User
 <div class="grid gap-12">
-    <% data.forEach(function(item) { %>
+    {{#each data as |item|}}
     <div class="flex flex-col gap-2">
         <div class="flex items-center justify-between">
-            <h1 class="text-xl font-bold"><%= item.title %></h1>
-            <button class="btn btn-primary btn-sm">Tambah</button>
+            <h1 class="text-xl font-bold">{{item.title}}</h1>
+            <button class="btn btn-primary btn-sm" onclick="openDialog('{{item.type}}')">Tambah</button>
         </div>
         <table class="table bg-base-200">
             <thead>
                 <tr>
                     <th>Nama</th>
-                    <th><%= item.header1 %></th>
+                    <th>{{item.header1}}</th>
                     <th>Email</th>
                     <th>Telepon</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                <% item.data.forEach(function(dataItem) { %>
+                {{#each item.data}}
                 <tr>
-                    <td><%= dataItem.nama %></td>
-                    <td><%= dataItem.nim || dataItem.nidn %></td>
-                    <td><%= dataItem.email %></td>
-                    <td><%= dataItem.telepon %></td>
+                    <td>{{this.nama}}</td>
+                    <td>{{this.nim}} {{this.nidn}}</td>
+                    <td>{{this.email}}</td>
+                    <td>{{this.telepon}}</td>
                     <td class="w-32">
-                        <button data-id="<%= dataItem.id %>"
-                            onclick="openEditDialog('<%= JSON.stringify(dataItem) %>', '<%= item.type %>')"
+                        <button data-id="{{this.id}}" onclick="openDialog('{{item.type}}', {{json this}})"
                             class="action_button_edit btn btn-square btn-sm btn-primary" title="edit">✏️</button>
-                        <button data-id="<%= dataItem.id %>"
-                            class="action_button_delete btn btn-square btn-sm btn-secondary" title="hapus">🗑️</button>
+                        <button data-id="{{this.id}}" class="action_button_delete btn btn-square btn-sm btn-secondary"
+                            title="hapus">🗑️</button>
                     </td>
                 </tr>
-                <% }); %>
+                {{/each}}
             </tbody>
         </table>
     </div>
-    <% }); %>
+    {{/each}}
 </div>
 <dialog id="editModal" class="modal">
     <div class="modal-box">
@@ -69,7 +69,7 @@
             </label>
             <div class="grid gap-4 grid-cols-2">
                 <button type="button" id="cancelBtn" class="btn btn-warning btn-outline">Batal</button>
-                <button id="saveBtn" class="btn btn-primary btn-">Simpan</button>
+                <button class="btn btn-primary btn-">Simpan</button>
             </div>
         </form>
     </div>
@@ -78,10 +78,32 @@
     </form>
 </dialog>
 
+<div id="allData" class="hidden">
+    {{json data}}
+</div>
 <script>
+    const allData = JSON.parse(document.getElementById('allData').innerText)
+    const form = document.querySelector("#submitEditForm")
+    let type = ""
+    let editContent = null
 
-    function openEditDialog(editContent, type) {
-        editContent = JSON.parse(editContent)
+    // Buat fungsi handler terpisah untuk submit form
+    function onSubmit(event) {
+        event.preventDefault()
+
+        verifySubmitedData(form, type).then(data => {
+            console.log(data)
+            const url = editContent ? "/update" : "/new"
+            submitEditForm(data, url).then((res) => {
+                hideModal(editModal)
+                // window.location.reload()
+            })
+        }).catch(error => {
+            alert(error)
+        })
+    }
+
+    function openDialog(type, _editContent) {
         const editModal = document.getElementById("editModal")
         const userId = editModal.querySelector("#userId")
         const dataType = editModal.querySelector("#dataType")
@@ -91,28 +113,36 @@
         const tel = editModal.querySelector("#tel")
         const cancelBtn = editModal.querySelector('#cancelBtn')
         const saveBtn = editModal.querySelector('#saveBtn')
-        const form = editModal.querySelector("#submitEditForm")
 
-        userId.value = editContent.id
+        editContent = _editContent
+        if (editContent != undefined) {
+            userId.value = parseInt(editContent.id)
+            nama.value = editContent.nama
+            idnum.value = editContent.nim != null ? editContent.nim : editContent.nidn != null ? editContent.nidn : ""
+            email.value = editContent.email ?? ""
+            tel.value = editContent.telepon || 0
+        } else {
+            userId.value = ""
+            nama.value = ""
+            idnum.value = ""
+            email.value = ""
+            tel.value = ""
+        }
+
+        type = type
         dataType.value = type
-        nama.value = editContent.nama
-        idnum.value = editContent.nim != null ? editContent.nim : editContent.nidn != null ? editContent.nidn : ""
-        email.value = editContent.email ?? ""
-        tel.value = editContent.telepon || 0
-
         editModal.classList.add("modal-open")
 
         cancelBtn.addEventListener("click", () => hideModal(editModal))
 
-        form.addEventListener('submit', (event) => {
-            event.preventDefault()
-
-            verifySubmitedData(form, type).then(data => {
-                submitEditForm(data).then(() => window.location.reload()).catch(alert)
-            }).catch(alert)
-
-        })
+        form.addEventListener('submit', onSubmit)
     }
+
+    function closeDialog() {
+        form.removeEventListener('submit', onSubmit)
+    }
+
+
 
 
     function verifySubmitedData(form, type) {
@@ -124,9 +154,36 @@
                     data[ key ] = value
                 }
 
-                if(type === 'dosen') {
+                const teleponListWithoutCurrent = new Set()
+                const nimListWithoutCurrent = new Set()
+
+
+
+                const currentData = allData.forEach(items => {
+                    items.data.forEach(item => {
+                        if (data.id == item.id && data.type == items.type) {
+                            return
+                        } else {
+                            teleponListWithoutCurrent.add(item.telepon)
+                            nimListWithoutCurrent.add(item.nidn || item.nim)
+                        }
+                    })
+                })
+
+
+                if (nimListWithoutCurrent.has(data.idNum)) {
+                    reject('NIM/NIDN sudah digunakan')
+                }
+
+                if (teleponListWithoutCurrent.has(data.telepon)) {
+                    reject('Nomor telepon sudah digunakan')
+                }
+
+                if (type === 'dosen') {
                     data.nidn = data.idNum
                     delete data.idNum
+
+
                 } else {
                     data.nim = data.idNum
                     delete data.idNum
@@ -134,16 +191,16 @@
 
                 resolve(data)
             } catch (error) {
-                reject(error)
                 console.error(error)
+                reject(error)
             }
         })
     }
 
-    function submitEditForm(data) {
+    function submitEditForm(data, url = "/update") {
         return new Promise(async (resolve, reject) => {
             try {
-                let res = await fetch('/api/edit', {
+                let res = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -153,8 +210,8 @@
                 let result = await res.json()
                 resolve(result)
             } catch (error) {
-                reject(error)
                 console.error(error)
+                reject(error)
             }
         })
     }

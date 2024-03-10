@@ -3,15 +3,14 @@ require("dotenv").config();
 import client from "./lib/client";
 import database from "./database";
 import logger from "./utils/logger";
-import webServer from "./web/webserver";
-
+import server from "./web";
 
 logger.info("Starting Prisma client...");
 database.$connect().then(() => {
     logger.info("Prisma client connected");
-    
-    webServer();
+
     logger.info("Starting WhatsApp client...");
+    server();
     setTimeout(() => {
         // client.connect();
     }, 2000);

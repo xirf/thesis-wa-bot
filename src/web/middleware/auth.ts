@@ -1,11 +1,9 @@
-// moddleware check if user is authenticated
+import Express, { Request, Response, Next } from 'express';
 
-import type { Request, Response } from "express"
-
-export default function authMiddleware(req: Request, res: Response, next: () => void) {
-    if (req.cookies.token) {
-        next()
+export default function (req: Request, res: Response, next: Next) {
+    if (req.cookies.auth) {
+        next();
     } else {
-        res.redirect('/login')
+        res.redirect('/login');
     }
 }
