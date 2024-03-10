@@ -1,12 +1,26 @@
-import express from "express"
-const R = express.Router()
+import { FastifyInstance } from 'fastify'
+import database from "./../../database"
 
-
-R.get('/', (_req: express.Request, res: express.Response) => {
-    res.render('index', {
-        layout: "dashboard"
+export default async function routes(fastify: FastifyInstance, options: Record<string, unknown>) {
+    fastify.get('/', async (request, reply) => {
+        const mahasiswaData = await database.mahasiswa.findMany()
+        const dosenData = await database.dosen.findMany()
+        return reply.view("index.ejs", {
+            data: [
+                {
+                    title: "Data Mahasiswa",
+                    header1: "NIM",
+                    data: mahasiswaData
+                },
+                {
+                    title: "Data Dosen",
+                    header1: "NIDN",
+                    data: dosenData
+                }
+            ]
+        }, {
+            layout:
+                "/layouts/dashboard.ejs"
+        })
     })
-})
-
-
-export default R
+}

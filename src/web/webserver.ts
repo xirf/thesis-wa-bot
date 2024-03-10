@@ -1,37 +1,41 @@
-import express from "express";
-import { engine } from "express-handlebars"
-import bodyParser from "body-parser";
-import logger from "../utils/logger";
-import cookieParser from "cookie-parser";
+import Fastify from 'fastify';
+import logger from '../utils/logger';
+import fastifyPOV from '@fastify/view';
+import ejs from "ejs";
 
+
+// Routes 
 import apiRoute from "./routes/Api"
 import dashboardRoute from "./routes/Dashboard"
+import path from 'path';
 
-import authMiddleware from "./middleware/auth";
+// Initialize Fastify
+const fastify = Fastify({
+    logger: logger.child({ module: "webserver" }),
 
-const app = express();
-const port = 3000;
+});
 
-app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json());
+// Register view engine
+fastify.register(fastifyPOV, {
+    engine: {
+        ejs,
+    },
+    root: path.join(__dirname, "views"),
+    viewExt: "ejs",
 
-app.engine('.hbs', engine({
-    extname: '.hbs'
-}));
-
-app.set('view engine', '.hbs');
-app.set('views', 'src/web/views/');
-
-app.use('/dashboard', authMiddleware, dashboardRoute);
-app.use('/api', apiRoute);
-app.get("/login", (_req, res) => {
-    res.render('login');
 })
 
 
-export default function start() {
-    app.listen(port, () => {
-        logger.info(`Server started at http://localhost:${port}`);
+// Register routes
+fastify.register(apiRoute, { prefix: "/api" });
+fastify.register(dashboardRoute);
+
+export default function run() {
+    fastify.listen({ port: 3000 }, (err, address) => {
+        if (err) {
+            fastify.log.error(err);
+            process.exit(1);
+        }
+        fastify.log.info(`server listening on ${address}`);
     });
 }

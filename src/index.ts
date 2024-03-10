@@ -9,8 +9,12 @@ import webServer from "./web/webserver";
 logger.info("Starting Prisma client...");
 database.$connect().then(() => {
     logger.info("Prisma client connected");
-    // client.connect();
+    
     webServer();
+    logger.info("Starting WhatsApp client...");
+    setTimeout(() => {
+        // client.connect();
+    }, 2000);
 
 }).catch((error) => {
     console.log(error)
