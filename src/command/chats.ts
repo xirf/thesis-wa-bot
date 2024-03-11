@@ -227,7 +227,7 @@ async function sendReply(msg: Message, target: any, response: any, isLecturer) {
         reply: target.text
     })
 
-    await database.historyBimbingan.create({
+    await database.historybimbingan.create({
         data: {
             mahasiswa: {
                 connect: {

@@ -1,71 +1,45 @@
-import puppetter from "puppeteer"
+import htmlToPdfMake from "html-to-pdfmake"
+import pdfmake from "pdfmake/build/pdfmake"
+import pdfFonts from "pdfmake/build/vfs_fonts"
+pdfmake.vfs = pdfFonts.pdfMake.vfs;
+import { JSDOM } from "jsdom"
+import fs, { writeFileSync } from "fs"
 import logger from "./logger";
+import path from "path";
 
-export default async function (HTML: string): Promise<Buffer> {
+
+export default async function genenate(html: string): Promise<string> {
     return new Promise(async (resolve, reject) => {
         try {
-            const browser = await puppetter.launch({
-                // adjust for minimal setting to generate PDF
-                headless: "new",
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--autoplay-policy=user-gesture-required',
-                    '--disable-background-networking',
-                    '--disable-background-timer-throttling',
-                    '--disable-backgrounding-occluded-windows',
-                    '--disable-breakpad',
-                    '--disable-client-side-phishing-detection',
-                    '--disable-component-update',
-                    '--disable-default-apps',
-                    '--disable-dev-shm-usage',
-                    '--disable-domain-reliability',
-                    '--disable-extensions',
-                    '--disable-features=AudioServiceOutOfProcess',
-                    '--disable-hang-monitor',
-                    '--disable-ipc-flooding-protection',
-                    '--disable-notifications',
-                    '--disable-offer-store-unmasked-wallet-cards',
-                    '--disable-popup-blocking',
-                    '--disable-print-preview',
-                    '--disable-prompt-on-repost',
-                    '--disable-renderer-backgrounding',
-                    '--disable-setuid-sandbox',
-                    '--disable-speech-api',
-                    '--disable-sync',
-                    '--hide-scrollbars',
-                    '--ignore-gpu-blacklist',
-                    '--metrics-recording-only',
-                    '--mute-audio',
-                    '--no-default-browser-check',
-                    '--no-first-run',
-                    '--no-pings',
-                    '--no-zygote',
-                    '--password-store=basic',
-                    '--use-gl=swiftshader',
-                    '--use-mock-keychain',
-                ],
+            const { window } = new JSDOM("")
+
+            const output = await htmlToPdfMake(html, { window })
+            var docDefinition = {
+                content: [
+                    output
+                ]
+            }
+
+            // create misc folder if nor present
+            if (!fs.existsSync(path.join(__dirname, "../../temp"))) {
+                fs.mkdirSync(path.join(__dirname, "../../temp"))
+            }
+
+            const name = path.join(
+                __dirname, "../../temp/",
+                new Date().getTime().toString() + Math.random().toString().slice(2, 5) + ".pdf"
+            )
+
+            var pdfGenerator = await pdfmake.createPdf(docDefinition)
+            await pdfGenerator.getBuffer((buffer) => {
+                writeFileSync(name, buffer)
+                console.log("From generator", name)
+                resolve(name)
             })
 
-            const page = await browser.newPage();
-            await page.setContent(HTML)
-            await page.emulateMediaType('screen');
-            const pdf = await page.pdf({
-                format: 'A4',
-                printBackground: true,
-                displayHeaderFooter: false,
-                margin: {
-                    top: "0px",
-                    bottom: "0px",
-                    left: "0px",
-                    right: "0px"
-                }
-            })
-
-            resolve(pdf)
         } catch (error) {
-            logger.error({ error, message: "Error when generate PDF" })
-            reject(error)
+            logger.error(error)
+            reject("Failed to generate PDF, reason: " + error.message)
         }
     })
 }

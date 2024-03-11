@@ -11,6 +11,9 @@ User
                 <tr>
                     <th>Nama</th>
                     <th>{{item.header1}}</th>
+                    {{#if item.mahasiswa}}
+                    <td>Program Studi</td>
+                    {{/if}}
                     <th>Email</th>
                     <th>Telepon</th>
                     <th>Aksi</th>
@@ -21,6 +24,9 @@ User
                 <tr>
                     <td>{{this.nama}}</td>
                     <td>{{this.nim}} {{this.nidn}}</td>
+                    {{#if item.mahasiswa}}
+                    <td>{{this.prodi}}</td>
+                    {{/if}}
                     <td>{{this.email}}</td>
                     <td>{{this.telepon}}</td>
                     <td class="w-32">
@@ -46,26 +52,36 @@ User
                 <div class="label">
                     <span class="label-text">Nama</span>
                 </div>
-                <input type="text" name="nama" placeholder="Nama" class="input input-bordered w-full" id="name" />
+                <input required type="text" name="nama" placeholder="Nama" class="input input-bordered w-full"
+                    id="name" />
             </label>
             <label class="form-control w-full">
                 <div class="label">
                     <span class="label-text">NIM / NIDN</span>
                 </div>
-                <input type="text" name="idNum" placeholder="NIDN" class="input input-bordered w-full" id="idnum" />
+                <input required type="text" name="idNum" placeholder="NIDN" class="input input-bordered w-full"
+                    id="idnum" />
             </label>
             <label class="form-control w-full">
                 <div class="label">
                     <span class="label-text">Email</span>
                 </div>
-                <input type="email" name="email" placeholder="Email" class="input input-bordered w-full" id="email" />
+                <input required type="email" name="email" placeholder="Email" class="input input-bordered w-full"
+                    id="email" />
             </label>
             <label class="form-control w-full">
                 <div class="label">
                     <span class="label-text">Telepon</span>
                 </div>
-                <input type="number" name="telepon" placeholder="Telepon" class="input input-bordered w-full"
+                <input required type="number" name="telepon" placeholder="Telepon" class="input input-bordered w-full"
                     id="tel" />
+            </label>
+            <label class="form-control w-full" id="prodiContainer">
+                <div class="label">
+                    <span class="label-text">Prodi</span>
+                </div>
+                <input type="text" name="prodi" placeholder="Prodi" class="input input-bordered w-full"
+                    id="prodi" />
             </label>
             <div class="grid gap-4 grid-cols-2">
                 <button type="button" id="cancelBtn" class="btn btn-warning btn-outline">Batal</button>
@@ -87,19 +103,29 @@ User
     let type = ""
     let editContent = null
 
-    // Buat fungsi handler terpisah untuk submit form
     function onSubmit(event) {
         event.preventDefault()
 
         verifySubmitedData(form, type).then(data => {
-            console.log(data)
+            if (data.error) {
+                alert(data.message)
+                return
+            }
+
             const url = editContent ? "/update" : "/new"
-            submitEditForm(data, url).then((res) => {
+            submitEditForm(data, url).then((data) => {
+                if (data.error) {
+                    alert(data.message)
+                    return
+                }
+
                 hideModal(editModal)
-                // window.location.reload()
+                window.location.reload()
+            }).catch(error => {
+                alert(error.message)
             })
         }).catch(error => {
-            alert(error)
+            alert(error.message)
         })
     }
 
@@ -111,8 +137,11 @@ User
         const idnum = editModal.querySelector("#idnum")
         const email = editModal.querySelector("#email")
         const tel = editModal.querySelector("#tel")
+        const prodi = editModal.querySelector("#prodi")
         const cancelBtn = editModal.querySelector('#cancelBtn')
         const saveBtn = editModal.querySelector('#saveBtn')
+        const prodiContainer = editModal.querySelector("#prodiContainer")
+
 
         editContent = _editContent
         if (editContent != undefined) {
@@ -121,12 +150,20 @@ User
             idnum.value = editContent.nim != null ? editContent.nim : editContent.nidn != null ? editContent.nidn : ""
             email.value = editContent.email ?? ""
             tel.value = editContent.telepon || 0
+            prodi.value = editContent.prodi
         } else {
             userId.value = ""
             nama.value = ""
             idnum.value = ""
             email.value = ""
             tel.value = ""
+        }
+
+        if (type == "dosen") {
+            prodiContainer.classList.add("hidden")
+        } else {
+            console.log(editContent)
+            prodiContainer.classList.remove("hidden")
         }
 
         type = type
@@ -172,18 +209,18 @@ User
 
 
                 if (nimListWithoutCurrent.has(data.idNum)) {
-                    reject('NIM/NIDN sudah digunakan')
+                    reject({ error: true, message: 'NIM/NIDN sudah digunakan' })
                 }
 
                 if (teleponListWithoutCurrent.has(data.telepon)) {
-                    reject('Nomor telepon sudah digunakan')
+                    reject({ error: true, message: 'Nomor telepon sudah digunakan' })
                 }
+
 
                 if (type === 'dosen') {
                     data.nidn = data.idNum
                     delete data.idNum
-
-
+                    delete data.prodi
                 } else {
                     data.nim = data.idNum
                     delete data.idNum
@@ -192,7 +229,7 @@ User
                 resolve(data)
             } catch (error) {
                 console.error(error)
-                reject(error)
+                reject({ error: true, message: 'Nomor telepon sudah digunakan' })
             }
         })
     }
@@ -208,10 +245,14 @@ User
                     body: JSON.stringify(data)
                 })
                 let result = await res.json()
+
+                if (res.status !== 200) {
+                    reject({ error: true, message: "Gagal menambahkan data" })
+                }
+
                 resolve(result)
             } catch (error) {
-                console.error(error)
-                reject(error)
+                reject({ error: true, message: "Gagal menambahkan data" })
             }
         })
     }

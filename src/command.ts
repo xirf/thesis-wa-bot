@@ -72,8 +72,7 @@ export default async (msg: Message) => {
             });
 
             if (!mhsid || !mhsid.id) {
-                console.log("================>")
-                msg.reply(response.error.notFound);
+                msg.reply(response.error.notRegistered);
                 return;
             }
 

@@ -24,20 +24,20 @@ model dosen {
   nidn             String             @db.VarChar(10)
   email            String?            @db.VarChar(255)
   telepon          String?            @db.VarChar(15)
+  historybimbingan historybimbingan[]
   pembimbing       pembimbing[]
-  HistoryBimbingan historyBimbingan[]
 }
 
 model mahasiswa {
   id               Int                @id @default(autoincrement())
   nama             String             @db.VarChar(255)
   nim              String             @db.VarChar(20)
-  prodi            String             @db.VarChar(255)
-  tahun_ajar       String             @db.VarChar(10)
+  prodi            String?            @db.VarChar(255)
+  tahun_ajar       String?            @db.VarChar(10)
   email            String?            @db.VarChar(255)
-  telepon          String?            @db.VarChar(15)
+  telepon          String             @db.VarChar(15)
+  historybimbingan historybimbingan[]
   ta               ta[]
-  HistoryBimbingan historyBimbingan[]
 }
 
 model pembimbing {
@@ -52,19 +52,6 @@ model pembimbing {
   @@index([id_ta], map: "id_ta")
 }
 
-model historyBimbingan {
-  id           Int       @id @default(autoincrement())
-  mahasiswa    mahasiswa @relation(fields: [mahasiswaId], references: [id])
-  mahasiswaId  Int
-  senderNumber String
-  senderName   String
-  content      String
-  dosen        dosen?    @relation(fields: [dosenId], references: [id])
-  dosenId      Int?
-  type         String    @default("mahasiswa")
-  createdAt    DateTime  @default(now())
-}
-
 model user {
   id       Int    @id @default(autoincrement())
   username String @db.VarChar(20)
@@ -76,6 +63,22 @@ model session {
   id        String  @id @default(cuid()) @map("_id")
   sessionId String  @unique(map: "Session_sessionId_key")
   session   String? @db.Text
+}
+
+model historybimbingan {
+  id           Int       @id @default(autoincrement())
+  mahasiswaId  Int
+  senderNumber String
+  senderName   String
+  content      String
+  dosenId      Int?
+  type         String    @default("mahasiswa")
+  createdAt    DateTime  @default(now())
+  dosen        dosen?    @relation(fields: [dosenId], references: [id], map: "historyBimbingan_dosenId_fkey")
+  mahasiswa    mahasiswa @relation(fields: [mahasiswaId], references: [id], map: "historyBimbingan_mahasiswaId_fkey")
+
+  @@index([dosenId], map: "historyBimbingan_dosenId_fkey")
+  @@index([mahasiswaId], map: "historyBimbingan_mahasiswaId_fkey")
 }
 
 enum pembimbing_status_pbb {

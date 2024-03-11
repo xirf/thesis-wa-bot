@@ -12,7 +12,7 @@ database.$connect().then(() => {
     logger.info("Starting WhatsApp client...");
     server();
     setTimeout(() => {
-        // client.connect();
+        client.connect();
     }, 2000);
 
 }).catch((error) => {

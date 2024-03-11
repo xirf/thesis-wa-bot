@@ -64,6 +64,10 @@ class Client {
                 } else {
                     log.fatal("Logged out, clearing session");
                     clearState();
+                    log.fatal("Please scan the code again to continue");
+                    setTimeout(() => {
+                        this.connect();
+                    }, 2000);
                 }
             }
 

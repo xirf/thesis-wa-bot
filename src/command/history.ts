@@ -3,13 +3,13 @@ import logger from "../utils/logger"
 import database from "../database"
 import response from "../../config/response.json"
 import generatePDF from "../utils/generatePDF"
-import { readFileSync } from "fs"
+import { readFileSync, unlinkSync } from "fs"
 import path from "path"
 
 export default (msg: Message, MahasiswaID: number): Promise<void> => {
     return new Promise(async () => {
         try {
-            const history = await database.historyBimbingan.findMany({
+            const history = await database.historybimbingan.findMany({
                 where: {
                     mahasiswaId: MahasiswaID
                 },
@@ -46,14 +46,26 @@ export default (msg: Message, MahasiswaID: number): Promise<void> => {
             const pdf = await generatePDF(HTML.
                 replace("{{messages}}", chats)
                 .replace("{{name}}", history.filter(({ type }) => type == "mahasiswa")[ 0 ].senderName))
+
+            console.log("From history", pdf)
             
-            
-            msg.reply({
+            if (pdf.includes("Failed to generate PDF, reason:")) {
+                msg.reply(response.error.failedToGeneratePDF)
+                return;
+            }
+
+            const pdfBuffer = await readFileSync(pdf)
+
+            console.log(pdf)
+
+            await msg.reply({
                 fileName: `history-bimbingan-${(new Date).toLocaleString()}.pdf`,
-                document: pdf,
+                document: pdfBuffer,
                 mimetype: "application/pdf",
                 caption: response.history,
             })
+
+            unlinkSync(pdf)
 
         } catch (error) {
             logger.error(error)
