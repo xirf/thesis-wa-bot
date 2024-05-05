@@ -31,15 +31,17 @@
             <label class="form-control w-full">
                 <div class="label w-full flex justify-between">
                     <span class="label-text">Judul Skripsi</span>
-                    <button id="addnewta" class="bg-none text-blue-400 outline-none hover:text-blue">Buat baru</button>
+                    <button type="button" id="addnewta" class="bg-none text-blue-400 outline-none hover:text-blue">Buat
+                        baru</button>
                 </div>
-                <select class="select select-bordered w-full" id="selectjudulskripsi"></select>
+                <select required class="select select-bordered w-full" name="judulskripsi"
+                    id="selectjudulskripsi"></select>
             </label>
             <label class="form-control w-full">
                 <div class="label">
                     <span class="label-text">Dosen Pembimbing 1</span>
                 </div>
-                <select class="select select-bordered w-full" name="dosenpembimbing1"
+                <select required class="select select-bordered w-full" name="dosenpembimbing1"
                     id="selectdosenpembimbing"></select>
             </label>
             <label class="form-control w-full">
@@ -53,10 +55,13 @@
                 <div class="label">
                     <span class="label-text">Status PBB</span>
                 </div>
-                <input class="input input-bordered w-full" type="text" name="status_pbb" id="statuspbb" />
+                <select required class="select select-bordered w-full" name="status_pbb">
+                    <option value="Aktif">Aktif</option>
+                    <option value="Non-Aktif">Tidak Aktif</option>
+                </select>
             </label>
             <div class="grid grid-cols-2 gap-2">
-                <button class="btn btn-warning w-full" type="button">Batal</button>
+                <button class="btn btn-warning w-full" id="cancel" type="button">Batal</button>
                 <button class="btn btn-primary w-full" type="submit">Simpan</button>
             </div>
         </form>
@@ -72,10 +77,16 @@
     const addButton = document.getElementById("addButton")
     const addModal = document.getElementById("addModal")
 
-
     addButton.addEventListener("click", () => {
         openAddModal()
-        console.log("clicked")
+    })
+
+    function closeAddModal() {
+        addModal.classList.remove("modal-open")
+    }
+
+    addModal.querySelector("#cancel").addEventListener("click", () => {
+        closeAddModal()
     })
 
     async function openAddModal() {
@@ -84,6 +95,9 @@
 
         let selectJudulSkripsi = document.getElementById("selectjudulskripsi")
         let selectDosenPembimbing = document.getElementById("selectdosenpembimbing")
+
+        selectJudulSkripsi.innerHTML = ""
+        selectDosenPembimbing.innerHTML = ""
 
         skripsi.forEach((item) => {
             let option = document.createElement("option")
@@ -123,6 +137,74 @@
 
             let result = await data.json()
             resolve(result)
+        })
+    }
+
+
+    addModal.querySelector("#submitEditForm").addEventListener("submit", async (e) => {
+        e.preventDefault()
+        let formdata = new FormData(addModal.querySelector("#submitEditForm"))
+        let dataContent = []
+
+        dataContent.push({
+            ta: parseInt(formdata.get("judulskripsi")),
+            dosen: parseInt(formdata.get("dosenpembimbing1")),
+            status: formdata.get("status_pbb")
+        })
+
+        if (formdata.get("pembimbing2") != null) {
+            dataContent.push({
+                ta: parseInt(formdata.get("judulskripsi")),
+                dosen: parseInt(formdata.get("dosenpembimbing2")),
+                status: formdata.get("status_pbb")
+            })
+        }
+
+
+        let response = await fetch("/api/pembimbing", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                data: dataContent
+            })
+        })
+
+        if (response.status >= 400) {
+            alert("Gagal menyimpan data")
+            return
+        }
+
+        let result = await response.json()
+        console.log(result)
+        window.location.reload()
+    })
+
+
+    window.onload = () => {
+        allData.forEach((item) => {
+            console.log(item)
+            let tr = document.createElement("tr")
+            let td1 = document.createElement("td")
+            let td2 = document.createElement("td")
+            let td3 = document.createElement("td")
+            let td4 = document.createElement("td")
+            let td5 = document.createElement("td")
+
+            td1.innerText = item.ta.judul
+            td2.innerText = item.dosen[0].nama
+            td3.innerText = item.dosen[1] ? item.dosen[1].nama : "-"
+            td4.innerText = item.status_pbb
+            td5.innerHTML = `<button class="btn btn-warning btn-sm" onclick="editData(${item.id})">Edit</button>`
+
+            tr.appendChild(td1)
+            tr.appendChild(td2)
+            tr.appendChild(td3)
+            tr.appendChild(td4)
+            tr.appendChild(td5)
+
+            tableBody.appendChild(tr)
         })
     }
 

@@ -42,11 +42,11 @@ model mahasiswa {
 
 model pembimbing {
   id         Int                    @id @default(autoincrement())
-  id_ta      Int?
-  id_dosen   Int?
+  id_ta      Int
+  id_dosen   Int
   status_pbb pembimbing_status_pbb?
-  ta         ta?                    @relation(fields: [id_ta], references: [id], onDelete: Cascade, map: "pembimbing_ibfk_1")
-  dosen      dosen?                 @relation(fields: [id_dosen], references: [id], onDelete: Cascade, map: "pembimbing_ibfk_2")
+  ta         ta                     @relation(fields: [id_ta], references: [id], onDelete: Cascade, map: "pembimbing_ibfk_1")
+  dosen      dosen                  @relation(fields: [id_dosen], references: [id], onDelete: Cascade, map: "pembimbing_ibfk_2")
 
   @@index([id_dosen], map: "id_dosen")
   @@index([id_ta], map: "id_ta")

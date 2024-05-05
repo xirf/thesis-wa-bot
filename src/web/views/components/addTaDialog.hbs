@@ -1,5 +1,119 @@
 <dialog class="modal" id="addtadialog">
     <div class="modal-box">
-        
+        <h3 class="font-bold text-lg">Edit</h3>
+        <form id="addtaform" class="grid gap-4">
+            <input type="hidden" id="userId" name="id" />
+            <input type="hidden" id="dataType" name="type" />
+            <label class="form-control w-full">
+                <div class="label w-full flex justify-between">
+                    <span class="label-text">Judul TA</span>
+                </div>
+                <input required class="input input-bordered w-full" type="text" name="judul_ta" id="judul_ta" />
+            </label>
+            <label class="form-control w-full">
+                <div class="label">
+                    <span class="label-text">Nama mahasiswa</span>
+                </div>
+                <select required name="mahasiswa" id="mahasiswa" class="select select-bordered w-full">
+                </select>
+            </label>
+            <label class="form-control w-full">
+                <div class="label">
+                    <span class="label-text">Status</span>
+                </div>
+                <input required class="input input-bordered w-full" type="text" name="status" id="status" />
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+                <button class="btn btn-warning w-full" id="cancel" type="button">Batal</button>
+                <button class="btn btn-primary w-full" id="submit" type="submit">Simpan</button>
+            </div>
+        </form>
     </div>
 </dialog>
+
+<script>
+    const addtadialog = document.getElementById('addtadialog');
+    const addtaform = document.getElementById('addtaform');
+    const addnewta = document.getElementById("addnewta")
+    const tacancelBtn = addtadialog.querySelector('#cancel');
+
+    function closeAddModal() { }
+
+    tacancelBtn.addEventListener("click", () => {
+        closeAddTaDialog()
+    })
+
+
+
+    addnewta.addEventListener("click", () => {
+        console.log('add new ta')
+        openAddTaDialog()
+    })
+
+    async function openAddTaDialog() {
+        try {
+            closeAddModal()
+        } catch (e) { }
+        const mahasiswa = await getAllMahasiswa();
+        const selectmahasiswa = document.getElementById('mahasiswa');
+
+        selectmahasiswa.innerHTML = '';
+        if (mahasiswa) {
+            mahasiswa.forEach(mhs => {
+                const option = document.createElement('option');
+                option.value = mhs.id;
+                option.innerText = mhs.nama;
+                selectmahasiswa.appendChild(option);
+            });
+        }
+
+        addtadialog.classList.add('modal-open');
+    }
+
+    function closeAddTaDialog() {
+        addtadialog.classList.remove('modal-open');
+    }
+
+    function getAllMahasiswa() {
+        return fetch('/api/mahasiswa?no_ta=true')
+            .then(res => res.json())
+            .then(data => {
+                const mahasiswa = document.getElementById('mahasiswa');
+                data.forEach(mhs => {
+                    const option = document.createElement('option');
+                    option.value = mhs.id;
+                    option.innerText = mhs.nama;
+                    mahasiswa.appendChild(option);
+                });
+            });
+    }
+
+    addtaform.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formdata = new FormData(addtaform);
+        const data = {
+            judul: formdata.get('judul_ta'),
+            id_mhs: parseInt(formdata.get('mahasiswa')),
+            status: formdata.get('status')
+        }
+
+        console.log(data)
+
+        let addta = await fetch('/api/ta', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+
+        if (addta.status === 200) {
+            closeAddTaDialog()
+        } else {
+            alert("Gagal menambahkan data")
+        }
+
+    })
+
+
+</script>

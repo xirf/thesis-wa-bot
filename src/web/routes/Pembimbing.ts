@@ -17,10 +17,23 @@ router.get("/", async (_req: Request, res: Response) => {
         }
     })
 
+    const combined = pembimbing.reduce((acc, curr) => {
+        const existingIndex = acc.findIndex(item => item.ta.id === curr.ta.id);
+
+        if (existingIndex >= 0) {
+            acc[ existingIndex ].dosen.push(curr.dosen);
+        } else {
+            // Clone the current item and make sure dosen is an array
+            const newItem = { ...curr, dosen: [ curr.dosen ] };
+            acc.push(newItem);
+        }
+
+        return acc;
+    }, []);
 
     res.render("pembimbing", {
         title: "Pembimbing",
-        data: pembimbing
+        data: combined
     });
 });
 
