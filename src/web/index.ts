@@ -59,7 +59,7 @@ app.use("/api", api);
 
 
 export default () => {
-    app.listen(3001, () => {
+    app.listen(3000, () => {
         logger.info("Server is running on http://localhost:3000");
     });
 }

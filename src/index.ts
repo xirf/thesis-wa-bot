@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-// import client from "./lib/client";
+import client from "./lib/client";
 import database from "./database";
 import logger from "./utils/logger";
 import server from "./web";
@@ -19,7 +19,7 @@ async function startApp() {
 
         logger.info("Starting WhatsApp client...");
         setTimeout(() => {
-            // client.connect();
+            client.connect();
         }, 2000);
     } catch (error) {
         console.error(error);
