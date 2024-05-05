@@ -1,11 +1,13 @@
 import Express, { Request, Response } from "express";
-import {engine} from "express-handlebars";
+import { engine } from "express-handlebars";
 import cookieParser from "cookie-parser";
 import logger from "../utils/logger";
 
 
 // Routes
 import Dashboard from "./routes/Dashboard";
+import pembimbing from "./routes/Pembimbing";
+import api from "./routes/Api";
 
 
 // Middleware
@@ -26,6 +28,7 @@ app.engine(".hbs", engine({
         }
     },
     layoutsDir: path.join(__dirname, "views/layouts"),
+    partialsDir: path.join(__dirname, "views/components"),
     defaultLayout: "main"
 }));
 
@@ -51,7 +54,8 @@ app.post("/login", async (req: Request, res: Response) => {
 });
 
 app.use("/", auth, Dashboard);
-
+app.use("/pembimbing", auth, pembimbing);
+app.use("/api", api);
 
 
 export default () => {

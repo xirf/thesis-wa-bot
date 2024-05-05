@@ -1,0 +1,129 @@
+<div class="w-full">
+    <div class="w-full flex justify-between items-center mb-4">
+        <h1 class="text-lg font-bold">Pembimbing</h1>
+        <button class="btn btn-primary btn-sm" id="addButton">Tambah</button>
+    </div>
+    <table class="table bg-base-200">
+        <thead>
+            <tr>
+                <th>Judul</th>
+                <th>Dosen Pembimbing 1</th>
+                <th>Dosen Pembimbing 2</th>
+                <th>Status pbb</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+
+        </tbody>
+    </table>
+</div>
+<div id="alldata" class="hidden">
+    {{json data}}
+</div>
+
+<dialog id="addModal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Edit</h3>
+        <form id="submitEditForm" class="grid gap-4">
+            <input type="hidden" id="userId" name="id" />
+            <input type="hidden" id="dataType" name="type" />
+            <label class="form-control w-full">
+                <div class="label w-full flex justify-between">
+                    <span class="label-text">Judul Skripsi</span>
+                    <button id="addnewta" class="bg-none text-blue-400 outline-none hover:text-blue">Buat baru</button>
+                </div>
+                <select class="select select-bordered w-full" id="selectjudulskripsi"></select>
+            </label>
+            <label class="form-control w-full">
+                <div class="label">
+                    <span class="label-text">Dosen Pembimbing 1</span>
+                </div>
+                <select class="select select-bordered w-full" name="dosenpembimbing1"
+                    id="selectdosenpembimbing"></select>
+            </label>
+            <label class="form-control w-full">
+                <div class="label">
+                    <span class="label-text">Dosen Pembimbing 2</span>
+                </div>
+                <select class="select select-bordered w-full" name="dosenpembimbing2"
+                    id="selectdosenpembimbing"></select>
+            </label>
+            <label class="form-control w-full">
+                <div class="label">
+                    <span class="label-text">Status PBB</span>
+                </div>
+                <input class="input input-bordered w-full" type="text" name="status_pbb" id="statuspbb" />
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+                <button class="btn btn-warning w-full" type="button">Batal</button>
+                <button class="btn btn-primary w-full" type="submit">Simpan</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+
+{{> addTaDialog}}
+
+<script>
+    const allData = JSON.parse(document.getElementById('alldata').innerText);
+    const tableBody = document.getElementById("tableBody")
+    const addButton = document.getElementById("addButton")
+    const addModal = document.getElementById("addModal")
+
+
+    addButton.addEventListener("click", () => {
+        openAddModal()
+        console.log("clicked")
+    })
+
+    async function openAddModal() {
+        let skripsi = await getAllSkripsi()
+        let dosen = await getAllDosen()
+
+        let selectJudulSkripsi = document.getElementById("selectjudulskripsi")
+        let selectDosenPembimbing = document.getElementById("selectdosenpembimbing")
+
+        skripsi.forEach((item) => {
+            let option = document.createElement("option")
+            option.value = item.id
+            option.innerText = item.judul
+            selectJudulSkripsi.appendChild(option)
+        })
+
+        dosen.forEach((item) => {
+            let option = document.createElement("option")
+            option.value = item.id
+            option.innerText = item.nama
+            selectDosenPembimbing.appendChild(option)
+        })
+
+        addModal.classList.add("modal-open")
+    }
+
+    async function getAllSkripsi() {
+        return new Promise(async (resolve, reject) => {
+            let data = await fetch("/api/skripsi")
+            if (data.status >= 400) {
+                reject(data)
+            }
+
+            let result = await data.json()
+            resolve(result)
+        })
+    }
+
+    async function getAllDosen() {
+        return new Promise(async (resolve, reject) => {
+            let data = await fetch("/api/dosen")
+            if (data.status >= 400) {
+                reject(data)
+            }
+
+            let result = await data.json()
+            resolve(result)
+        })
+    }
+
+</script>
