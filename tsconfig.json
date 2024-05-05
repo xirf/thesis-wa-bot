@@ -28,7 +28,7 @@
   },
   "include": [
     "src/**/*",
-    "models/**/*"
+    "models/**/*",
   ],
   "exclude": [
     "node_modules",
