@@ -9,7 +9,7 @@ const command: Command = async (msg: Message, cache) => {
         return await checkNIM(msg, cache, "student");
     } catch (error) {
         msg.reply(response.error.internalServerError);
-        logger.warn({ error, msg: "Error when checking nim" })
+        logger.warn({ error, msg: "Error when checking nim, file: " + __dirname + __filename})
         return;
     }
 }

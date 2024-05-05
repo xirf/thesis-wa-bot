@@ -73,6 +73,10 @@ router.post("/new", async (req: Request, res: Response) => {
         }
         else {
             delete data.type
+            data.nidn = data.nim || data.nidn
+            delete data.nim
+            delete data.prodi
+            delete data.id
             await database.dosen.create({
                 data
             });

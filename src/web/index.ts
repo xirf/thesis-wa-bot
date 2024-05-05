@@ -5,7 +5,7 @@ import logger from "../utils/logger";
 
 
 // Routes
-import Dashboard from "./routes/dashboard";
+import Dashboard from "./routes/Dashboard";
 
 
 // Middleware

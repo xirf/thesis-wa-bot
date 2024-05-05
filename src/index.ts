@@ -5,19 +5,31 @@ import database from "./database";
 import logger from "./utils/logger";
 import server from "./web";
 
-logger.info("Starting Prisma client...");
-database.$connect().then(() => {
-    logger.info("Prisma client connected");
+const WEB_ONLY = "true";
+const DB_CONNECTION_ERROR = "Error when connecting to database";
 
-    logger.info("Starting WhatsApp client...");
-    server();
-    setTimeout(() => {
-        client.connect();
-    }, 2000);
+async function startApp() {
+    logger.info("Starting Prisma client...");
 
-}).catch((error) => {
-    console.log(error)
-    logger.fatal("Error when connecting to database");
-    logger.fatal({ error, msg: "Error when connecting to database" });
-    process.exit(1);
-})
+    try {
+        await database.$connect();
+        logger.info("Prisma client connected");
+
+        if(process.env.WEB_ONLY === WEB_ONLY) logger.info("Running in WEB_ONLY mode");
+        logger.info("Starting Web client...");
+        server();
+        
+        if (process.env.WEB_ONLY !== WEB_ONLY) {
+            logger.info("Starting WhatsApp client...");
+            setTimeout(() => {
+                client.connect();
+            }, 2000);
+        }
+    } catch (error) {
+        console.error(error);
+        logger.fatal(DB_CONNECTION_ERROR);
+        process.exit(1);
+    }
+}
+
+startApp();

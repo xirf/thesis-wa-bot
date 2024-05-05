@@ -34,6 +34,9 @@
         "invalidFormat": "Maaf, format yang anda masukkan salah. Silahkan coba lagi",
         "invalidLecturer": "Maaf, nomor yang anda masukkan tidak terdaftar sebagai dosen pembimbing. Silahkan coba lagi",
         "notRegistered": "Maaf, nomor anda tidak terdaftar sebagai mahasiswa",
-        "failedToGeneratePDF": "Maaf, laporan gagal di-generate. Silahkan coba lagi"
+        "failedToGeneratePDF": "Maaf, laporan gagal di-generate. Silahkan coba lagi",
+        "TA": {
+            "notFound": "Nomor anda terdaftar sebagai mahasiswa namun kami tidak dapat menemukan data skripsi anda. Silahkan hubungi dosen pembimbing anda\n\nSilahkan hubungi dosen pembimbing anda untuk informasi lebih lanjut"
+        }
     }
 }

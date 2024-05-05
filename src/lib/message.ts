@@ -22,7 +22,7 @@ class Message {
             || msg.message?.videoMessage?.caption
             || msg.message?.extendedTextMessage?.text;
 
-        if (this.text.startsWith(this.#prefix)) {
+        if (this.text?.startsWith(this.#prefix)) {
             const [ command, ...args ] = this.text.slice(this.#prefix.length).split(" ");
 
             this.command = command;

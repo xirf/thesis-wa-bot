@@ -41,6 +41,11 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
             return;
         }
 
+        if (!studentInfo.ta[ 0 ]) {
+            msg.reply(response.error.TA.notFound)
+            return;
+        }
+
         let reformattedData = {
             name: studentInfo.nama,
             nim: studentInfo.nim,
@@ -79,7 +84,8 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
         return;
     } catch (error) {
         msg.reply(response.error.internalServerError);
-        logger.warn({ error, msg: "Error when checking nim" })
+        console.log(error)
+        logger.warn({ error: error, msg: "Error when checking nim filename:" + __dirname + __filename })
         return;
     }
 }
