@@ -88,12 +88,23 @@
         closeAddModal()
     })
 
+
+    let selectDosenPembimbing = document.querySelectorAll("#selectdosenpembimbing")
+    
+    selectDosenPembimbing[ 1 ].addEventListener("change", (e) => {
+        if (e.target.value == selectDosenPembimbing[ 0 ].value) {
+            alert("Dosen pembimbing tidak boleh sama")
+            e.target.value = ""
+        }
+    })
+
+    console.log(selectDosenPembimbing)
+
     async function openAddModal() {
         let skripsi = await getAllSkripsi()
         let dosen = await getAllDosen()
 
         let selectJudulSkripsi = document.getElementById("selectjudulskripsi")
-        let selectDosenPembimbing = document.getElementById("selectdosenpembimbing")
 
         selectJudulSkripsi.innerHTML = ""
         selectDosenPembimbing.innerHTML = ""
@@ -105,11 +116,20 @@
             selectJudulSkripsi.appendChild(option)
         })
 
-        dosen.forEach((item) => {
+        selectDosenPembimbing.forEach(el => {
+            el.innerHTML = ""
             let option = document.createElement("option")
-            option.value = item.id
-            option.innerText = item.nama
-            selectDosenPembimbing.appendChild(option)
+            option.value = ""
+            option.selected = true
+            option.innerText = "Pilih Dosen"
+            el.appendChild(option)
+
+            dosen.forEach((item) => {
+                let option = document.createElement("option")
+                option.value = item.id
+                option.innerText = item.nama
+                el.appendChild(option)
+            })
         })
 
         addModal.classList.add("modal-open")
@@ -191,8 +211,8 @@
             let td4 = document.createElement("td")
 
             td1.innerText = item.ta.judul
-            td2.innerText = item.dosen[0].nama
-            td3.innerText = item.dosen[1] ? item.dosen[1].nama : "-"
+            td2.innerText = item.dosen[ 0 ].nama
+            td3.innerText = item.dosen[ 1 ] ? item.dosen[ 1 ].nama : "-"
             td4.innerText = item.status_pbb
 
             tr.appendChild(td1)

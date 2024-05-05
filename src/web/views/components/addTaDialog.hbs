@@ -77,15 +77,6 @@
     function getAllMahasiswa() {
         return fetch('/api/mahasiswa?no_ta=true')
             .then(res => res.json())
-            .then(data => {
-                const mahasiswa = document.getElementById('mahasiswa');
-                data.forEach(mhs => {
-                    const option = document.createElement('option');
-                    option.value = mhs.id;
-                    option.innerText = mhs.nama;
-                    mahasiswa.appendChild(option);
-                });
-            });
     }
 
     addtaform.addEventListener('submit', async (e) => {
