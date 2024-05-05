@@ -43,7 +43,13 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
 
         if (!studentInfo.ta[ 0 ]) {
             msg.reply(response.error.TA.notFound)
-            return;
+            try {
+                cache.del(msg.sender)
+            } catch (e) {
+                logger.warn("User not found and cant clear cache. file: src/command/shared/checknim.ts")
+            } finally {
+                return;
+            }
         }
 
         let reformattedData = {
