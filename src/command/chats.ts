@@ -18,7 +18,7 @@ interface HandleLecturer {
 }
 
 export default async function handleQuotedMessage(msg: Message, isLecturer: IsLecturer): Promise<boolean> {
-    const conversation = msg.quoted.contextInfo?.quotedMessage?.conversation;
+    const conversation = msg.quoted?.contextInfo?.quotedMessage?.conversation;``
     const validQuotedMessage = [
         response.reportTemplate.lecturer.substring(0, 20),
         response.reportTemplate.student.substring(0, 13),
@@ -155,7 +155,7 @@ async function findTelepon(name: string, nim: string, title: string, isLecturer:
 
 async function handleResponse(msg: Message, telepon: any, isLecturer: IsLecturer, type: string) {
     if (!telepon) return false;
-    if(telepon?.telepon.startsWith("08")) telepon.telepon = telepon.telepon.replace("0", "62")
+    if (telepon?.telepon.startsWith("08")) telepon.telepon = telepon.telepon.replace("0", "62")
 
     const [ result ] = await msg.socket.onWhatsApp(telepon.telepon);
 
@@ -208,7 +208,7 @@ async function handleResponse(msg: Message, telepon: any, isLecturer: IsLecturer
 }
 
 async function checkComplete(msg: Message, result, response, isLecturer) {
-    if (msg.text === "selesai") {
+    if (msg.text?.toLowerCase() === "selesai") {
         const txt = response.reportAccepted.replace("{lecturer}", isLecturer.nama);
         await msg.sendText(result.jid, txt);
         return true;

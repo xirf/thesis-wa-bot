@@ -81,6 +81,7 @@ export default async (msg: Message) => {
 
         case "dev-version":
             let msgText = templateParser(response.versionInfo, {
+                env: process.env.NODE_ENV || "unknown",
                 version: packageJson.version,
                 arch: os.arch() + " " + os.machine(),
                 cpu: os.cpus()[ 0 ].model,

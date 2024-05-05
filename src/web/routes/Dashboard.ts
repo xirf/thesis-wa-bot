@@ -45,6 +45,8 @@ router.post("/update", async (req: Request, res: Response) => {
         }
         else {
             delete data.type
+            delete data.nim
+            delete data.prodi
             await database.dosen.update({
                 where: { id: parseInt(id) },
                 data

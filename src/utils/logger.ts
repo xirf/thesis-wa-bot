@@ -5,8 +5,6 @@ if (!fs.existsSync("logs")) {
     fs.mkdirSync("logs");
 }
 
-const logStream = fs.createWriteStream("logs/app.log", { flags: "a" });
-
 const logger = pino({
     level: "info",
     transport: {
@@ -18,6 +16,9 @@ const logger = pino({
             hideObject: false,
         },
     }
-}, logStream);
+},
+    pino.destination("logs/app.log")
+);
+
 
 export default logger;

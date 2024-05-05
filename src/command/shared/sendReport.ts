@@ -4,6 +4,7 @@ import response from "../../../config/response.json";
 import logger from "../../utils/logger";
 import templateParser from "../../utils/templateParser";
 import database from "../../database";
+import cache from "../../cache/cache";
 
 export async function sendReport(msg: Message, msgs: string[], cachedData: any, type: 'lecturer' | 'student' = 'student') {
     try {
@@ -28,7 +29,7 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
             }
         })
 
-        let saved = await database.historyBimbingan.create({
+        let saved = await database.historybimbingan.create({
             data: {
                 mahasiswa: {
                     connect: {
@@ -82,12 +83,16 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
                 } else {
                     logger.warn(`${type} ${name.substring(0, 10)} with number ${telepon} don't exist in Whatsapp`);
                 }
+
             });
 
     } catch (error) {
-        logger.warn({ error, msg: `Failed to send report to ${type}` });
+        console.log(error);
+        logger.error({ error, msg: `Failed to send report to ${type}` });
         msg.reply(response.error.internalServerError);
 
         return;
+    } finally {
+        cache.del(msg.sender);
     }
 }
