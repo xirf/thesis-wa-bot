@@ -10,7 +10,6 @@ import templateParser from "./utils/templateParser";
 import parseTime from "./utils/parseTime";
 import packageJson from "../package.json";
 import os from "node:os";
-import { readFileSync } from "fs";
 import history from "./command/history";
 
 const log = logger.child({ module: "command" });
@@ -68,7 +67,7 @@ export default async (msg: Message) => {
                 ...whereQuery,
                 select: {
                     id: true
-                },                
+                },
             });
 
             if (!mhsid || !mhsid.id) {
@@ -108,7 +107,13 @@ export default async (msg: Message) => {
             let moduleDir = cachedData.event?.replaceAll(".", path.sep);
             let fullDir = join(__dirname, "command", moduleDir);
 
-            if (!readFileSync(fullDir + ".ts")) {
+            let commandPath = fullDir + ".ts";
+
+            if (process.env.NODE_ENV !== "development") {
+                commandPath = fullDir + ".js"
+            }
+
+            if (!commandPath) {
                 log.warn({ msg: "Command file not found", fullDir });
                 msg.reply("Maaf, terjadi kesalahan pada sistem. Silahkan hubungi admin.");
             }

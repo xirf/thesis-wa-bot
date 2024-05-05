@@ -10,7 +10,7 @@
     "prebuild": "rm -rf dist && mkdir dist && mkdir dist/misc && cp -r misc/* dist/misc/",
     "build": "tsc",
     "preprod": "npm run build",
-    "prod": "pm2 start ecosystem.config.js --env production"
+    "prod": "pm2 start ecosystem.config.js"
   },
   "repository": {
     "type": "git",
