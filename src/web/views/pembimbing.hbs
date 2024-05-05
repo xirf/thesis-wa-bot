@@ -10,7 +10,6 @@
                 <th>Dosen Pembimbing 1</th>
                 <th>Dosen Pembimbing 2</th>
                 <th>Status pbb</th>
-                <th>Aksi</th>
             </tr>
         </thead>
         <tbody id="tableBody">
@@ -190,19 +189,16 @@
             let td2 = document.createElement("td")
             let td3 = document.createElement("td")
             let td4 = document.createElement("td")
-            let td5 = document.createElement("td")
 
             td1.innerText = item.ta.judul
             td2.innerText = item.dosen[0].nama
             td3.innerText = item.dosen[1] ? item.dosen[1].nama : "-"
             td4.innerText = item.status_pbb
-            td5.innerHTML = `<button class="btn btn-warning btn-sm" onclick="editData(${item.id})">Edit</button>`
 
             tr.appendChild(td1)
             tr.appendChild(td2)
             tr.appendChild(td3)
             tr.appendChild(td4)
-            tr.appendChild(td5)
 
             tableBody.appendChild(tr)
         })
