@@ -207,6 +207,7 @@ async function handleResponse(msg: Message, telepon: any, isLecturer: IsLecturer
     }
 }
 
+
 async function checkComplete(msg: Message, result, response, isLecturer) {
     if (msg.text?.toLowerCase() === "selesai") {
         const txt = response.reportAccepted.replace("{lecturer}", isLecturer.nama);

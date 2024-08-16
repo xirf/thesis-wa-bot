@@ -33,7 +33,6 @@ export default async function genenate(html: string): Promise<string> {
             var pdfGenerator = await pdfmake.createPdf(docDefinition)
             await pdfGenerator.getBuffer((buffer) => {
                 writeFileSync(name, buffer)
-                console.log("From generator", name)
                 resolve(name)
             })
 

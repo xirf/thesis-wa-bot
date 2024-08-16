@@ -48,7 +48,6 @@ export default (msg: Message, MahasiswaID: number): Promise<void> => {
                 replace("{{messages}}", chats)
                 .replace("{{name}}", history.filter(({ type }) => type == "mahasiswa")[ 0 ].senderName))
 
-            console.log("From history", pdf)
             
             if (pdf.includes("Failed to generate PDF, reason:")) {
                 msg.reply(response.error.failedToGeneratePDF)
@@ -57,7 +56,6 @@ export default (msg: Message, MahasiswaID: number): Promise<void> => {
 
             const pdfBuffer = await readFileSync(pdf)
 
-            console.log(pdf)
 
             await msg.reply({
                 fileName: `history-bimbingan-${(new Date).toLocaleString()}.pdf`,

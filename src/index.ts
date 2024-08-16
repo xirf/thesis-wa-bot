@@ -10,6 +10,7 @@ const DB_CONNECTION_ERROR = "Error when connecting to database";
 async function startApp() {
     logger.info("Starting Prisma client...");
 
+
     try {
         await database.$connect();
         logger.info("Prisma client connected");
@@ -17,10 +18,15 @@ async function startApp() {
         logger.info("Starting Web client...");
         server();
 
-        logger.info("Starting WhatsApp client...");
-        setTimeout(() => {
-            client.connect();
-        }, 2000);
+        // Don't run the bot if had argument -w (web only) 
+        if (process.argv.includes("-w")) {   
+            logger.warn("Using -w WhatsApp won't started")
+        } else {   
+            logger.info("Starting WhatsApp client...");
+            setTimeout(() => {
+                client.connect();
+            }, 2000);
+        }
     } catch (error) {
         console.error(error);
         logger.fatal(DB_CONNECTION_ERROR);

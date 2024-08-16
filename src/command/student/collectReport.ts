@@ -26,7 +26,6 @@ const command: Command = async (msg: Message, cache: any) => {
 
         return await cache.set(msg.sender, cache.get(msg.sender));
     } catch (error) {
-        console.log(error);
         logger.warn({ error, msg: "Error when running command" })
         return await msg.reply(response.error.internalServerError);
     }

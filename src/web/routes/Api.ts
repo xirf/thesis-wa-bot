@@ -48,7 +48,6 @@ router.post("/ta", async (req: Request, res: Response) => {
 router.post("/pembimbing", async (req: Request, res: Response) => {
     try {
         const reqbody = req.body;
-        console.log(reqbody.data)
 
         await Promise.all(reqbody.data.map(async (element) => {
             if (!element) return
