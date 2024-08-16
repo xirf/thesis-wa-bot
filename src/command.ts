@@ -1,16 +1,17 @@
-import Message from "./lib/message";
 import cache from "./cache/cache";
-import response from "../config/response.json";
-import database from "./database";
-import path, { join } from "path";
-import logger from "./utils/logger";
-import type { Command } from "./types";
 import chats from "./command/chats";
-import templateParser from "./utils/templateParser";
-import parseTime from "./utils/parseTime";
-import packageJson from "../package.json";
+import database from "./database";
+import getReportHistory from "./commands/getReportHistory";
+import logger from "./utils/logger";
+import Message from "./lib/message";
 import os from "node:os";
-import history from "./command/history";
+import packageJson from "../package.json";
+import parseTime from "./utils/parseTime";
+import path, { join } from "path";
+import response from "../config/response.json";
+import templateParser from "./utils/templateParser";
+import type { Command } from "./types";
+import checkStudent from "./commands/checkStudent";
 
 const log = logger.child({ module: "command" });
 
@@ -19,12 +20,14 @@ export default async (msg: Message) => {
     let cachedData: any = cache.get(msg.sender);
 
 
+    // Check if the message is a reply and a valid reply
     if (msg.quoted !== null) {
         let res = await chats(msg, isLecturer)
         if (res) return;
     }
 
     // This part is for the default command
+    // Keep on top to trap the message and not treated as next step
     switch (msg.command) {
         case "start":
         case "help":
@@ -33,8 +36,9 @@ export default async (msg: Message) => {
                 msg.reply(response.start.lecturer);
                 cache.set(msg.sender, { event: "lecturer.checkNIM" })
             } else {
-                msg.reply(response.start.student);
-                cache.set(msg.sender, { event: "student.checkNIM" })
+                // msg.reply(response.start.student);
+                // cache.set(msg.sender, { event: "student.setPembibing" })
+                checkStudent(msg);
             }
             return;
 
@@ -42,40 +46,11 @@ export default async (msg: Message) => {
             msg.reply("Pong!");
             return;
 
+        case "report":
+        case "laporan":
         case "history":
         case "histori":
-            let whereQuery: any = {
-                where: {
-                    telepon: {
-                        contains: msg.sender.split("@")[ 0 ].slice(-10)
-                    }
-                }
-            };
-
-            if (isLecturer) {
-                let mshid = msg.arg
-                if (!mshid) {
-                    msg.reply(response.error.notFound);
-                    return;
-                }
-                whereQuery.where = {
-                    nim: mshid
-                }
-            }
-
-            let mhsid = await database.mahasiswa.findFirst({
-                ...whereQuery,
-                select: {
-                    id: true
-                },
-            });
-
-            if (!mhsid || !mhsid.id) {
-                msg.reply(response.error.notRegistered);
-                return;
-            }
-
-            history(msg, mhsid.id);
+            getReportHistory(msg, isLecturer ? true : false);
             break;
 
         case "dev-version":
@@ -96,7 +71,7 @@ export default async (msg: Message) => {
 
             return;
 
-        default:
+        default: // Do nothing
             break;
     }
 

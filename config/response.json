@@ -1,6 +1,6 @@
 {
     "start": {
-        "student": "Selamat datang di _BOT BIMBINGAN SKRIPSI_\n\nSilahkan masukkan NIM anda untuk memulai bimbingan skripsi\n\nContoh: 1708107010021",
+        "student": "Selamat datang di _BOT BIMBINGAN SKRIPSI_\n\nNomor Anda sudah terdaftar sebagai *{name}* dengan Judul skripsi *{title}*.\n\nUnutk mengirim laporan ke Dosen pembimbing silahkan pilih dosen di bawah ini\n\n{lecturer}\n\nUntuk melihat riwayat bimbingan gunakan \\histori",
         "lecturer": "Nomor Anda sudah terdaftar sebagai dosen pembimbing. Silahkan masukkan NIM mahasiswa untuk memulai bimbingan skripsi\n\nContoh: 1708107010021"
     },
     "nimFound": {
@@ -33,7 +33,7 @@
         "internalServerError": "Maaf, terjadi kesalahan pada server. Silahkan coba lagi",
         "invalidFormat": "Maaf, format yang anda masukkan salah. Silahkan coba lagi",
         "invalidLecturer": "Maaf, nomor yang anda masukkan tidak terdaftar sebagai dosen pembimbing. Silahkan coba lagi",
-        "notRegistered": "Maaf, nomor anda tidak terdaftar sebagai mahasiswa",
+        "notRegistered": "Maaf, nomor anda tidak terdaftar sebagai mahasiswa, jika ini adalah kesalahan silahkan hubungi administrator 😊",
         "failedToGeneratePDF": "Maaf, laporan gagal di-generate. Silahkan coba lagi",
         "TA": {
             "notFound": "Nomor anda terdaftar sebagai mahasiswa namun kami tidak dapat menemukan data skripsi anda. Silahkan hubungi dosen pembimbing anda\n\nSilahkan hubungi dosen pembimbing anda untuk informasi lebih lanjut"

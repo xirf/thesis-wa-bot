@@ -3,3 +3,4 @@ sessions
 .env
 package-lock.json
 dist
+media/*

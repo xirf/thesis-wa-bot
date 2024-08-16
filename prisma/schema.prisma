@@ -81,6 +81,14 @@ model historybimbingan {
   @@index([mahasiswaId], map: "historyBimbingan_mahasiswaId_fkey")
 }
 
+model chat {
+  id           Int      @id @default(autoincrement())
+  msgKey       String
+  senderJid    String
+  type         String
+  content      String
+}
+
 enum pembimbing_status_pbb {
   Aktif
   Non_Aktif @map("Non-Aktif")
