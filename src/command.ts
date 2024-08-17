@@ -53,9 +53,10 @@ export default async (msg: Message) => {
             getReportHistory(msg, isLecturer ? true : false);
             break;
 
+        case "dever":
         case "dev-version":
             let msgText = templateParser(response.versionInfo, {
-                env: process.env.NODE_ENV || "unknown",
+                env: process.env.NODE_ENV || "Development",
                 version: packageJson.version,
                 arch: os.arch() + " " + os.machine(),
                 cpu: os.cpus()[ 0 ].model,
@@ -63,8 +64,8 @@ export default async (msg: Message) => {
                 platform: os.platform(),
                 nodeVersion: process.version,
                 uptime: parseTime(process.uptime() * 1000),
-                memoryUsage: JSON.stringify(process.memoryUsage()),
-                cpuUsage: JSON.stringify(process.cpuUsage())
+                memoryUsage: `${Math.round(os.freemem() / 1024 / 1024)} MB / ${Math.round(os.totalmem() / 1024 / 1024)} MB - ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB `,
+                cpuUsage: `${os.loadavg().map((v) => v.toFixed(2)).join("%, ")}%`
             })
 
             msg.reply(msgText);
