@@ -1,8 +1,8 @@
-import Message from "../lib/message"
-import logger from "../utils/logger"
-import database from "../database"
-import response from "../../config/response.json"
-import generatePDF from "../utils/generatePDF"
+import Message from "../../lib/message"
+import logger from "../../utils/logger"
+import database from "../../database"
+import response from "../../../config/response.json"
+import generatePDF from "../../utils/generatePDF"
 import { readFileSync, unlinkSync } from "fs"
 import path from "path"
 

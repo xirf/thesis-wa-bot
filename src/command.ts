@@ -1,7 +1,7 @@
 import cache from "./cache/cache";
 import chats from "./command/chats";
 import database from "./database";
-import getReportHistory from "./commands/getReportHistory";
+import getReportHistory from "./command/utils/getReportHistory";
 import logger from "./utils/logger";
 import Message from "./lib/message";
 import os from "node:os";
@@ -11,7 +11,8 @@ import path, { join } from "path";
 import response from "../config/response.json";
 import templateParser from "./utils/templateParser";
 import type { Command } from "./types";
-import checkStudent from "./commands/checkStudent";
+import checkStudent from "./command/utils/checkStudent";
+import starightToLecturer from "./command/utils/starightToLecturer";
 
 const log = logger.child({ module: "command" });
 
@@ -36,8 +37,6 @@ export default async (msg: Message) => {
                 msg.reply(response.start.lecturer);
                 cache.set(msg.sender, { event: "lecturer.checkNIM" })
             } else {
-                // msg.reply(response.start.student);
-                // cache.set(msg.sender, { event: "student.setPembibing" })
                 checkStudent(msg);
             }
             return;
@@ -45,6 +44,12 @@ export default async (msg: Message) => {
         case "ping":
             msg.reply("Pong!");
             return;
+        
+        case "to1":
+        case "to2":
+            if (isLecturer) return;
+            starightToLecturer(msg, msg.command);
+            break;
 
         case "report":
         case "laporan":
@@ -111,4 +116,3 @@ export default async (msg: Message) => {
         }
     }
 };
-

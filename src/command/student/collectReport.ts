@@ -8,18 +8,18 @@ import { proto } from "@whiskeysockets/baileys";
 
 const command: Command = async (msg: Message, cache: any) => {
     try {
-        let text = msg.text;
+        let text: string | null = msg.text;
 
-        if (text.toLowerCase() == "batal") {
+        if (text?.toLowerCase() == "batal") {
             msg.reply(response.canceled);
             cache.set(msg.sender, { data: cache.data })
             return;
-        } else if (text.toLowerCase() == "selesai") {
+        } else if (text?.toLowerCase() == "selesai") {
             if (cache.msgs == undefined || cache.msgs.length == 0)
                 return await msg.reply(response.error.emptyReport);
 
             return await sendReport(msg, cache.msgs, cache.get(msg.sender), "student");
-        } else if (text.toLowerCase() == "hapus") {
+        } else if (text?.toLowerCase() == "hapus") {
             if (cache.msgs == undefined || cache.msgs.length == 0)
                 return await msg.reply(response.error.emptyReport);
 
@@ -43,17 +43,6 @@ const command: Command = async (msg: Message, cache: any) => {
 
             if (cache.msgs == undefined) cache.msgs = [];
             cache.msgs.push(msg.stanzaId);
-
-            await database.chat.create({
-                data: {
-                    id: msg.stanzaId,
-                    msgKey: msg.stanzaId,
-                    senderJid: msg.sender,
-                    rawContent: JSON.stringify(msg.stanzaId),
-                    content: msg.text,
-                    type: msg.msgType
-                }
-            })
         }
 
         return await cache.set(msg.sender, cache.get(msg.sender));

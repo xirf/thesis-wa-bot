@@ -13,9 +13,12 @@ import makeWASocket, {
 } from '@whiskeysockets/baileys'
 import Database from "../database"
 import command from '../command';
+import { allowedMessageType } from '../constants/chat';
 
 const log = logger.child({ module: 'client' }) as any;
 log.level = 'warn';
+
+
 class Client {
     protected socket: ReturnType<typeof makeWASocket> | null = null;
 
@@ -85,19 +88,13 @@ class Client {
             let msg = m.messages[ 0 ];
             if (msg.key.fromMe) return;
 
+            console.log(Object.keys(msg.message)[ 0 ]);
 
-            let allowedMessageType = [
-                "imageMessage",     "conversation",
-                "documentMessage",  "videoMessage",
-                "audioMessage",     "extendedTextMessage"
-            ];
-            
-            if(!allowedMessageType.includes(Object.keys(msg.message)[0])) return;
-
-            const message = new Message(msg, socket);
-            logger.info("New message received from " + message.sender);
-            await command(message);
-
+            if (Object.keys(msg.message).some((type) => allowedMessageType.includes(type))) {
+                const message = new Message(msg, socket);
+                logger.info("New message received from " + message.sender);
+                await command(message);
+            }
         })
 
     }

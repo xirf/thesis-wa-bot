@@ -1,6 +1,6 @@
-import Message from "../lib/message";
-import response from "../../config/response.json"
-import database from "../database"
+import Message from "../../lib/message";
+import response from "../../../config/response.json"
+import database from "../../database"
 import parseHistory from "./parseHistory";
 
 export default async (msg: Message, isLecturer: boolean = false) => {

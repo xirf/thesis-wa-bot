@@ -4,6 +4,7 @@ import client from "./lib/client";
 import database from "./database";
 import logger from "./utils/logger";
 import server from "./web";
+import removeOldChatInDb from "./utils/removeOldChatInDb";
 
 const DB_CONNECTION_ERROR = "Error when connecting to database";
 
@@ -26,6 +27,9 @@ async function startApp() {
             setTimeout(() => {
                 client.connect();
             }, 2000);
+
+            logger.info("Starting cronjob task...");
+            removeOldChatInDb();
         }
     } catch (error) {
         console.error(error);

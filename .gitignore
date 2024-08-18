@@ -4,3 +4,4 @@ sessions
 package-lock.json
 dist
 media/*
+logs/*

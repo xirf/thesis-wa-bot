@@ -1,8 +1,9 @@
-import { AnyMessageContent, proto, makeWASocket, downloadMediaMessage, MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
+import { AnyMessageContent, proto, makeWASocket, downloadMediaMessage, MiscMessageGenerationOptions, AnyMediaMessageContent } from "@whiskeysockets/baileys";
 import logger from "../utils/logger";
 import database from "../database";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import crypto from "crypto";
+import { allowedMessageType, mediaMessageType } from "../constants/chat";
 
 class Message {
     readonly state: any;
@@ -16,7 +17,8 @@ class Message {
     readonly msgType: string;
     readonly stanzaId: string;
     readonly quotedStanzaId: string | null = null;
-    protected mediaPath: string;
+    protected mediaPath: string | null = null;
+    protected mimetype: string | null = null;
     #prefix: string = process.env.PREFIX || "/";
 
     constructor(msg: proto.IWebMessageInfo, socket: ReturnType<typeof makeWASocket>) {
@@ -28,7 +30,10 @@ class Message {
         this.text = msg.message?.conversation
             || msg.message?.imageMessage?.caption
             || msg.message?.videoMessage?.caption
-            || msg.message?.extendedTextMessage?.text;
+            || msg.message?.extendedTextMessage?.text
+            || msg.message?.documentWithCaptionMessage?.message?.documentMessage.caption
+            || msg.message?.documentMessage.caption;
+
 
         if (this.quoted) {
             this.quotedStanzaId = this.quoted.contextInfo.stanzaId;
@@ -40,31 +45,32 @@ class Message {
             this.arg = args.join(" ");
         }
 
-        this.msgType = Object.keys(msg.message)[ 0 ];
-
-        const mediaTypeAndFormat = {
-            "imageMessage": "jpeg",
-            "videoMessage": "mp4",
-            "audioMessage": "mp3",
-        };
-
-        if (mediaTypeAndFormat[ this.msgType ]) {
-            this.handleMediaMessage(mediaTypeAndFormat[ this.msgType ]);
+        this.msgType = Object.keys(msg.message).filter(type => allowedMessageType.includes(type))[ 0 ];
+        if (mediaMessageType.includes(this.msgType)) {
+            this.handleMediaMessage();
         }
 
-        if ([ "conversation", "imageMessage", "videoMessage", "extendedTextMessage" ].includes(this.msgType)) {
+        writeFileSync(`./logs/${Date.now()}.json`, JSON.stringify(msg, null, 2));
+
+        if (Object.keys(allowedMessageType).some(type => type === this.msgType)) {
             this.saveMessageToDatabase();
         }
     }
 
-    private async handleMediaMessage(fileFormat: string) {
-        const filename = this.generateUniqueFilename(fileFormat);
+    private async handleMediaMessage() {
+        this.mimetype = this.message.message[ this.msgType ].mimetype;
 
+        let file = this.message.message[ this.msgType ].fileName;
+        if (this.msgType == "documentWithCaptionMessage")
+            file = this.message.message[ this.msgType ].message.documentMessage.fileName;
+
+        const filename = this.generateUniqueFilename(file.split(".").pop() || "jpg");
+
+        this.mediaPath = `./media/${filename}`;
         if (!existsSync('./media')) {
             mkdirSync('./media');
         }
 
-        this.mediaPath = `./media/${filename}`;
 
         logger.info(`Receiving new media message ${this.msgType}, Saving as ${filename}`);
         try {
@@ -123,22 +129,22 @@ class Message {
         if (typeof params === "string") params = { text: params };
 
         try {
-            const msg = await this.socket?.sendMessage(this.message.key.remoteJid, params, {
+            await this.socket?.sendMessage(this.message.key.remoteJid, params, {
                 quoted: this.message,
                 ...options
             });
 
-            await database.chat.create({
-                data: {
-                    id: msg.key.id,
-                    senderJid: msg.key.remoteJid,
-                    type: Object.keys(msg.message)[ 0 ],
-                    msgKey: JSON.stringify(msg.key),
-                    content: JSON.stringify(msg.message),
-                    rawContent: JSON.stringify(msg),
-                    mediaPath: this.mediaPath
-                }
-            });
+            // await database.chat.create({
+            //     data: {
+            //         id: msg.key.id,
+            //         senderJid: msg.key.remoteJid,
+            //         type: Object.keys(msg.message)[ 0 ],
+            //         msgKey: JSON.stringify(msg.key),
+            //         content: JSON.stringify(msg.message),
+            //         rawContent: JSON.stringify(msg),
+            //         mediaPath: this.mediaPath
+            //     }
+            // });
         } catch (error) {
             logger.warn({
                 error: {
@@ -153,19 +159,19 @@ class Message {
     public async sendText(jid: string, text: string, options: MiscMessageGenerationOptions = {}): Promise<void> {
         this.read();
         try {
-            const msg = await this.socket?.sendMessage(jid, { text, ...options });
+            await this.socket?.sendMessage(jid, { text, ...options });
 
-            await database.chat.create({
-                data: {
-                    id: msg.key.id,
-                    senderJid: msg.key.remoteJid,
-                    type: Object.keys(msg.message)[ 0 ],
-                    msgKey: JSON.stringify(msg.key),
-                    content: JSON.stringify(msg.message),
-                    rawContent: JSON.stringify(msg),
-                    mediaPath: this.mediaPath
-                }
-            });
+            // await database.chat.create({
+            //     data: {
+            //         id: msg.key.id,
+            //         senderJid: msg.key.remoteJid,
+            //         type: Object.keys(msg.message)[ 0 ],
+            //         msgKey: JSON.stringify(msg.key),
+            //         content: JSON.stringify(msg.message),
+            //         rawContent: JSON.stringify(msg),
+            //         mediaPath: this.mediaPath
+            //     }
+            // });
         } catch (error) {
             logger.warn({
                 error: {
@@ -173,6 +179,33 @@ class Message {
                     stack: error.stack
                 },
                 msg: `Failed to send message to ${jid}`
+            });
+        }
+    }
+
+    public async sendMedia(jid: string, media: AnyMediaMessageContent) {
+        this.read();
+        try {
+            await this.socket?.sendMessage(jid, media);
+
+            // await database.chat.create({
+            //     data: {
+            //         id: msg.key.id,
+            //         senderJid: msg.key.remoteJid,
+            //         type: Object.keys(msg.message)[ 0 ],
+            //         msgKey: JSON.stringify(msg.key),
+            //         content: JSON.stringify(msg.message),
+            //         rawContent: JSON.stringify(msg),
+            //         mediaPath: this.mediaPath
+            //     }
+            // });
+        } catch (error) {
+            logger.warn({
+                error: {
+                    message: error.message,
+                    stack: error.stack
+                },
+                msg: `Failed to send media message to ${jid}`
             });
         }
     }

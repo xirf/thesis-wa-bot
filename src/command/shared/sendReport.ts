@@ -1,98 +1,122 @@
-// reportUtils.ts
 import Message from "../../lib/message";
 import response from "../../../config/response.json";
 import logger from "../../utils/logger";
 import templateParser from "../../utils/templateParser";
 import database from "../../database";
 import cache from "../../cache/cache";
+import { AnyMediaMessageContent } from "@whiskeysockets/baileys";
+import { readFileSync } from "fs";
+import saveReportToDatabase from "../../utils/saveReportToDatabase";
+import separateMediaAndTextReports from "../../utils/separateMediaAndText";
 
 export async function sendReport(msg: Message, msgs: string[], cachedData: any, type: 'lecturer' | 'student' = 'student') {
     try {
-        let text = templateParser(response.reportTemplate[ type ], {
-            name: cachedData.data.name,
-            nim: cachedData.data.nim,
-            title: cachedData.data.title,
-            report: msgs.map((msg, i) => `${i + 1}. ${msg}`).join("\n")
-        });
-
-
-
-        if (type == 'lecturer') {
-            cachedData.name = cachedData.lecturer.filters(({ telepon }) => {
-                msg.sender.split("@")[ 0 ].slice(-8) == telepon.slice(-8)
-            }).map(({ name }) => name)[ 0 ];
+        const allReports = await fetchReports(msgs);
+        console.log(allReports);
+        if (allReports.length === 0) {
+            handleEmptyReport(msg, cachedData, type);
+            return;
         }
 
-        let mhsid = await database.mahasiswa.findFirst({
-            where: {
-                nim: cachedData.data.nim
-            }
-        })
+        const { media, reportText } = separateMediaAndTextReports(allReports);
+        const text = generateReportText(cachedData, type, reportText);
 
-        let saved = await database.historybimbingan.create({
-            data: {
-                mahasiswa: {
-                    connect: {
-                        id: mhsid.id
-                    },
-                },
-                type: type == 'lecturer' ? 'pembimbing' : 'mahasiswa',
-                senderName: cachedData.data.name,
-                senderNumber: msg.sender.split("@")[ 0 ],
-                content: msgs.map((msg, i) => `${i + 1}. ${msg}`).join("\n")
-            }
-        })
+        await saveReportToDatabase(msg, cachedData, type, msgs);
 
-        if (saved) {
-            logger.info(`Report from ${type} ${cachedData.data.name} with nim ${cachedData.data.nim} has been saved to database`);
-        } else {
-            logger.warn(`Failed to save report from ${type} ${cachedData.data.name} with nim ${cachedData.data.nim} to database`);
-        }
-
-
-        type == 'lecturer' ? cachedData.data.lecturer = [ cachedData.data ] : cachedData.data.lecturer;
-
-
-        cachedData.data.lecturer
-            .forEach(async ({ telepon, name }: { telepon: string, name: string }) => {
-                if (telepon.startsWith("0")) telepon = telepon.replace("0", "62");
-                let [ result ] = await msg.socket.onWhatsApp(telepon);
-
-                if (!result || result.exists == undefined) {
-                    logger.warn(`${type} ${name.substring(0, 10)} with number ${telepon} don't exist in Whatsapp`);
-
-                    await msg.reply(
-                        templateParser(response.reportNotSent, {
-                            lecturer: name.substring(0, 20),
-                            reason: "Nomor Whatsapp tidak ditemukan"
-                        })
-                    );
-
-                    return;
-                }
-
-
-                if (result.exists) {
-                    await msg.sendText(result.jid, text);
-                    await msg.reply(
-                        templateParser(response.reportSent, {
-                            lecturer: type == "lecturer" ? name.substring(0, 20) : "Pembimbing",
-                        })
-                    );
-
-                } else {
-                    logger.warn(`${type} ${name.substring(0, 10)} with number ${telepon} don't exist in Whatsapp`);
-                }
-
-            });
-
+        await sendReportToLecturers(msg, cachedData, type, text, media);
     } catch (error) {
-        console.log(error);
-        logger.error({ error, msg: `Failed to send report to ${type}` });
-        msg.reply(response.error.internalServerError);
-
-        return;
+        handleError(msg, error, type);
     } finally {
         cache.del(msg.sender);
     }
+}
+
+async function fetchReports(msgs: string[]) {
+    console.log(msgs);
+    return await database.chat.findMany({
+        where: {
+            msgKey: {
+                in: msgs
+            }
+        }
+    });
+}
+
+function handleEmptyReport(msg: Message, cachedData: any, type: string) {
+    logger.warn(`Failed to send report to ${type} ${cachedData.data.name} with nim ${cachedData.data.nim} because report is empty`);
+    msg.reply(response.error.emptyReport);
+}
+
+function generateReportText(cachedData: any, type: string, reportText: string) {
+    return templateParser(response.reportTemplate[ type ], {
+        name: cachedData.data.name,
+        nim: cachedData.data.nim,
+        title: cachedData.data.title,
+        report: reportText
+    });
+}
+
+async function sendMediaMessages(msg: Message, media: any[], target: string) {
+    for (const { mediaPath, type, content } of media) {
+        // @ts-expect-error -  not implemented yet
+        let mediaContent: AnyMediaMessageContent = {};
+        switch (type) {
+            case "videoMessage":
+                mediaContent = { video: readFileSync(mediaPath) };
+                break;
+            case "imageMessage":
+                mediaContent = { image: readFileSync(mediaPath) };
+                break;
+            case "audioMessage":
+                mediaContent = { audio: readFileSync(mediaPath), mimetype: "audio/mp3" };
+                break;
+            default: return;
+        }
+
+        if (content) {
+            mediaContent = { ...mediaContent, caption: content };
+        }
+
+        await msg.sendMedia(target, mediaContent);
+    }
+}
+
+async function sendReportToLecturers(msg: Message, cachedData: any, type: string, text: string, media: any[]) {
+    if (type === 'lecturer') {
+        cachedData.name = cachedData.lecturer.filter(({ telepon }) => {
+            return msg.sender.split("@")[ 0 ].slice(-8) === telepon.slice(-8);
+        }).map(({ name }) => name)[ 0 ];
+    }
+
+    const lecturers = type === 'lecturer' ? [ cachedData.data ] : cachedData.data.lecturer;
+
+    for (const { telepon, name } of lecturers) {
+        let phoneNumber = telepon.startsWith("0") ? telepon.replace("0", "62") : telepon;
+        const [ result ] = await msg.socket.onWhatsApp(phoneNumber);
+
+        if (!result || result.exists === undefined) {
+            logger.warn(`${type} ${name.substring(0, 10)} with number ${phoneNumber} doesn't exist on WhatsApp`);
+            await msg.reply(templateParser(response.reportNotSent, {
+                lecturer: name.substring(0, 20),
+                reason: "Nomor Whatsapp tidak ditemukan"
+            }));
+            continue;
+        }
+
+        if (result.exists) {
+            await msg.sendText(result.jid, text);
+            await sendMediaMessages(msg, media, result.jid);
+            await msg.reply(templateParser(response.reportSent, {
+                lecturer: type === "lecturer" ? name.substring(0, 20) : "Pembimbing",
+            }));
+        } else {
+            logger.warn(`${type} ${name.substring(0, 10)} with number ${phoneNumber} doesn't exist on WhatsApp`);
+        }
+    }
+}
+
+function handleError(msg: Message, error: any, type: string) {
+    console.log(error);
+    logger.error({ error, msg: `Failed to send report to ${type}` });
+    msg.reply(response.error.internalServerError);
 }

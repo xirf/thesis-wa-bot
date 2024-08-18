@@ -14,6 +14,9 @@ importers:
       '@prisma/client':
         specifier: ^5.7.0
         version: 5.7.0(prisma@5.7.0)
+      '@types/node-cron':
+        specifier: ^3.0.11
+        version: 3.0.11
       '@types/qrcode':
         specifier: ^1.5.5
         version: 1.5.5
@@ -23,6 +26,9 @@ importers:
       cookie-parser:
         specifier: ^1.4.6
         version: 1.4.6
+      cronstrue:
+        specifier: ^2.50.0
+        version: 2.50.0
       dotenv:
         specifier: ^16.3.1
         version: 16.3.1
@@ -53,6 +59,9 @@ importers:
       node-cache:
         specifier: ^5.1.2
         version: 5.1.2
+      node-cron:
+        specifier: ^3.0.3
+        version: 3.0.3
       pdfkit:
         specifier: ^0.14.0
         version: 0.14.0
@@ -526,6 +535,9 @@ packages:
   '@types/long@4.0.2':
     resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}
 
+  '@types/node-cron@3.0.11':
+    resolution: {integrity: sha512-0ikrnug3/IyneSHqCBeslAhlK2aBfYek1fGo4bP4QnZPmiqSGRK+Oy7ZMisLWkesffJvQ1cqAcBnJC+8+nxIAg==}
+
   '@types/node@10.17.60':
     resolution: {integrity: sha512-F0KIgDJfy2nA3zMLmWGKxcH2ZVEtCZXHHdOQs2gSaQ27+lNeEfGxzkIw90aXswATX7AZ33tahPbzy6KAfUreVw==}
 
@@ -998,6 +1010,10 @@ packages:
 
   croner@4.1.97:
     resolution: {integrity: sha512-/f6gpQuxDaqXu+1kwQYSckUglPaOrHdbIlBAu0YuW8/Cdb45XwXYNUBXg3r/9Mo6n540Kn/smKcZWko5x99KrQ==}
+
+  cronstrue@2.50.0:
+    resolution: {integrity: sha512-ULYhWIonJzlScCCQrPUG5uMXzXxSixty4djud9SS37DoNxDdkeRocxzHuAo4ImRBUK+mAuU5X9TSwEDccnnuPg==}
+    hasBin: true
 
   cross-fetch@3.1.5:
     resolution: {integrity: sha512-lvb1SBsI0Z7GDwmuid+mU3kWVBwTVUbe7S0H52yaaAdQOXq2YktTCZdlAcNKFzE6QtRz0snpw9bNiPeOIkkQvw==}
@@ -2017,6 +2033,10 @@ packages:
     resolution: {integrity: sha512-t1QzWwnk4sjLWaQAS8CHgOJ+RAfmHpxFWmc36IWTiWHQfs0w5JDMBS1b1ZxQteo0vVVuWJvIUKHDkkeK7vIGCg==}
     engines: {node: '>= 8.0.0'}
 
+  node-cron@3.0.3:
+    resolution: {integrity: sha512-dOal67//nohNgYWb+nWmg5dkFdIwDm8EpeGYMekPMrngV3637lqnX0lbUcCtgibHTz6SEz7DAIjKvKDFYCnO1A==}
+    engines: {node: '>=6.0.0'}
+
   node-fetch@2.6.7:
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
     engines: {node: 4.x || >=6.0.0}
@@ -2862,6 +2882,10 @@ packages:
     deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
     hasBin: true
 
+  uuid@8.3.2:
+    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
+
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
@@ -3586,6 +3610,8 @@ snapshots:
 
   '@types/long@4.0.2': {}
 
+  '@types/node-cron@3.0.11': {}
+
   '@types/node@10.17.60': {}
 
   '@types/node@16.9.1': {}
@@ -4110,6 +4136,8 @@ snapshots:
   create-require@1.1.1: {}
 
   croner@4.1.97: {}
+
+  cronstrue@2.50.0: {}
 
   cross-fetch@3.1.5:
     dependencies:
@@ -5279,6 +5307,10 @@ snapshots:
     dependencies:
       clone: 2.1.2
 
+  node-cron@3.0.3:
+    dependencies:
+      uuid: 8.3.2
+
   node-fetch@2.6.7:
     dependencies:
       whatwg-url: 5.0.0
@@ -6225,6 +6257,8 @@ snapshots:
   utils-merge@1.0.1: {}
 
   uuid@3.4.0: {}
+
+  uuid@8.3.2: {}
 
   uuid@9.0.1: {}
 

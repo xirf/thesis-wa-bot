@@ -1,41 +1,13 @@
-import database from "../database"
-import Message from "../lib/message"
+import Message from "../../lib/message"
 import response from ",./../../config/response.json"
-import cache from "../cache/cache"
-import templateParser from "../utils/templateParser"
+import cache from "../../cache/cache"
+import templateParser from "../../utils/templateParser"
+import getStudent from "./getStudent"
 
 export default async (msg: Message) => {
-    let student = await database.mahasiswa.findFirst({
-        where: {
-            telepon: {
-                contains: msg.sender.split("@")[ 0 ].slice(-10)
-            }
-        },
-        select: {
-            nama: true,
-            nim: true,
-            telepon: true,
-            ta: {
-                select: {
-                    id: true,
-                    judul: true,
-                    pembimbing: {
-                        select: {
-                            dosen: {
-                                select: {
-                                    nama: true,
-                                    telepon: true,
-                                    nidn: true
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    })
+    let { student, error } = await getStudent(msg);
 
-    if (!student) {
+    if (error) {
         msg.reply(response.error.notRegistered)
         return;
     }
