@@ -1,7 +1,8 @@
-import { AnyMessageContent, proto, makeWASocket, downloadMediaMessage } from "@whiskeysockets/baileys";
+import { AnyMessageContent, proto, makeWASocket, downloadMediaMessage, MiscMessageGenerationOptions } from "@whiskeysockets/baileys";
 import logger from "../utils/logger";
-import database from "../database"
+import database from "../database";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
+import crypto from "crypto";
 
 class Message {
     readonly state: any;
@@ -13,108 +14,158 @@ class Message {
     readonly command: string | null = null;
     readonly arg: string;
     readonly msgType: string;
-    readonly mediaPath: string;
+    readonly stanzaId: string;
+    readonly quotedStanzaId: string | null = null;
+    protected mediaPath: string;
     #prefix: string = process.env.PREFIX || "/";
 
     constructor(msg: proto.IWebMessageInfo, socket: ReturnType<typeof makeWASocket>) {
         this.message = msg;
         this.socket = socket;
         this.sender = msg.key.remoteJid;
+        this.stanzaId = msg.key.id;
         this.quoted = msg.message?.extendedTextMessage;
         this.text = msg.message?.conversation
             || msg.message?.imageMessage?.caption
             || msg.message?.videoMessage?.caption
             || msg.message?.extendedTextMessage?.text;
 
+        if (this.quoted) {
+            this.quotedStanzaId = this.quoted.contextInfo.stanzaId;
+        }
+
         if (this.text?.startsWith(this.#prefix)) {
             const [ command, ...args ] = this.text.slice(this.#prefix.length).split(" ");
-
             this.command = command;
             this.arg = args.join(" ");
         }
 
-        writeFileSync("./message.json", JSON.stringify(msg, null, 2));
+        this.msgType = Object.keys(msg.message)[ 0 ];
 
-        this.msgType = Object.keys(msg.message)[ 0 ]
+        const mediaTypeAndFormat = {
+            "imageMessage": "jpeg",
+            "videoMessage": "mp4",
+            "audioMessage": "mp3",
+        };
 
-        if (this.msgType === 'imageMessage') {
-            let filename = crypto.randomUUID() + '.jpg';
-            if (existsSync(`./media/${filename}`)) filename = crypto.randomUUID() + '.jpg';
-
-            // check folder if not exists create it
-            if (!existsSync('./media')) {
-                mkdirSync('./media');
-            }
-
-            this.mediaPath = `./media/${filename}`;
-
-            downloadMediaMessage(
-                msg,
-                'buffer',
-                {}, {
-                logger: logger.child({ module: 'downloadMediaMessage' }) as any,
-                reuploadRequest: socket.updateMediaMessage
-            }).then(async (media: Buffer) => {
-                writeFileSync(`./media/${filename}`, media);
-            }).catch((error: any) => {
-                logger.warn({ error, msg: `Failed to download media message from ${msg.key.remoteJid}` })
-            })
+        if (mediaTypeAndFormat[ this.msgType ]) {
+            this.handleMediaMessage(mediaTypeAndFormat[ this.msgType ]);
         }
 
         if ([ "conversation", "imageMessage", "videoMessage", "extendedTextMessage" ].includes(this.msgType)) {
-
-            database.chat.create({
-                data: {
-                    senderJid: msg.key.remoteJid,
-                    type: this.msgType,
-                    msgKey: JSON.stringify(this.message.key),
-                    content: this.msgType === 'imageMessage' ? this.mediaPath : this.text
-                }
-            }).then(res => {
-                if (res) {
-                    logger.info({ msg: "Message saved to database" })
-                } else {
-                    logger.warn({ msg: "Failed to save message to database" })
-                }
-            }).catch(error => {
-                logger.warn({
-                    error: {
-                        message: error.message,
-                        stack: error.stack
-                    },
-                    msg: "Failed to save message to database"
-                })
-            })
-        }       
+            this.saveMessageToDatabase();
+        }
     }
 
-    public async reply(params: AnyMessageContent | string): Promise<void> {
-        return new Promise(async (resolve, _) => {
-            this.read();
-            if (typeof params === "string") params = { text: params };
+    private async handleMediaMessage(fileFormat: string) {
+        const filename = this.generateUniqueFilename(fileFormat);
 
-            let msg = await this.socket?.sendMessage(this.message.key.remoteJid, params, {
-                quoted: this.message,
+        if (!existsSync('./media')) {
+            mkdirSync('./media');
+        }
+
+        this.mediaPath = `./media/${filename}`;
+
+        logger.info(`Receiving new media message ${this.msgType}, Saving as ${filename}`);
+        try {
+            const media = await downloadMediaMessage(
+                this.message, 'buffer', {}, {
+                logger: logger.child({ module: 'downloadMediaMessage' }) as any,
+                reuploadRequest: this.socket.updateMediaMessage
             });
 
-            database.chat.create({
-                data: {
-                    senderJid: msg.key.remoteJid,
-                    type: "text",
-                    msgKey: JSON.stringify(msg.key),
-                    content: msg.message.conversation
-                }
-            })
-
-
-            resolve();
-        })
+            // @ts-expect-error - media is a buffer
+            writeFileSync(this.mediaPath, media);
+        } catch (error) {
+            logger.warn({ error, msg: `Failed to download media message from ${this.message.key.remoteJid}` });
+        }
     }
 
-    public async sendText(jid: string, text: string): Promise<void> {
+    private generateUniqueFilename(fileFormat: string): string {
+        let filename = `${crypto.randomUUID()}.${fileFormat}`;
+        while (existsSync(`./media/${filename}`)) {
+            filename = `${crypto.randomUUID()}.${fileFormat}`;
+        }
+        return filename;
+    }
+
+    private async saveMessageToDatabase() {
         try {
-            this.read();
-            this.socket?.sendMessage(jid, { text: text, });
+            const res = await database.chat.create({
+                data: {
+                    id: this.stanzaId,
+                    senderJid: this.message.key.remoteJid,
+                    type: this.msgType,
+                    msgKey: JSON.stringify(this.message.key),
+                    content: this.text,
+                    mediaPath: this.mediaPath,
+                    rawContent: JSON.stringify(this.message)
+                }
+            });
+            if (res) {
+                logger.info({ msg: "Message saved to database" });
+            } else {
+                logger.warn({ msg: "Failed to save message to database" });
+            }
+        } catch (error) {
+            logger.warn({
+                error: {
+                    message: error.message,
+                    stack: error.stack
+                },
+                msg: "Failed to save message to database"
+            });
+        }
+    }
+
+    public async reply(params: AnyMessageContent | string, options: MiscMessageGenerationOptions = {}): Promise<void> {
+        this.read();
+        if (typeof params === "string") params = { text: params };
+
+        try {
+            const msg = await this.socket?.sendMessage(this.message.key.remoteJid, params, {
+                quoted: this.message,
+                ...options
+            });
+
+            await database.chat.create({
+                data: {
+                    id: msg.key.id,
+                    senderJid: msg.key.remoteJid,
+                    type: Object.keys(msg.message)[ 0 ],
+                    msgKey: JSON.stringify(msg.key),
+                    content: JSON.stringify(msg.message),
+                    rawContent: JSON.stringify(msg),
+                    mediaPath: this.mediaPath
+                }
+            });
+        } catch (error) {
+            logger.warn({
+                error: {
+                    message: error.message,
+                    stack: error.stack
+                },
+                msg: `Failed to send reply message`
+            });
+        }
+    }
+
+    public async sendText(jid: string, text: string, options: MiscMessageGenerationOptions = {}): Promise<void> {
+        this.read();
+        try {
+            const msg = await this.socket?.sendMessage(jid, { text, ...options });
+
+            await database.chat.create({
+                data: {
+                    id: msg.key.id,
+                    senderJid: msg.key.remoteJid,
+                    type: Object.keys(msg.message)[ 0 ],
+                    msgKey: JSON.stringify(msg.key),
+                    content: JSON.stringify(msg.message),
+                    rawContent: JSON.stringify(msg),
+                    mediaPath: this.mediaPath
+                }
+            });
         } catch (error) {
             logger.warn({
                 error: {
@@ -122,36 +173,32 @@ class Message {
                     stack: error.stack
                 },
                 msg: `Failed to send message to ${jid}`
-            })
+            });
         }
     }
 
     public async read(): Promise<void> {
-        this.socket?.readMessages([ this.message.key ])
+        this.socket?.readMessages([ this.message.key ]);
     }
 
     public parseTemplate(template: string, data: Record<string, any>): string {
-        let result = template;
-
-        for (const key in data) {
+        return Object.keys(data).reduce((result, key) => {
             const regex = new RegExp(`{${key}}`, "gi");
-            result = result.replace(regex, data[ key ]);
-        }
-
-        return result;
+            return result.replace(regex, data[ key ]);
+        }, template);
     }
 
-    public async react() {
+    public async react(emote: string = "👍"): Promise<void> {
+        this.read();
         try {
-            await this.read();
             await this.socket.sendMessage(this.sender, {
                 react: {
-                    text: "👍",
+                    text: emote,
                     key: this.message.key
                 }
-            })
+            });
         } catch (error) {
-            logger.warn({ error, msg: "Failed to send reaction" })
+            logger.warn({ error, msg: "Failed to send reaction" });
         }
     }
 }

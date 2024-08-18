@@ -100,7 +100,14 @@ export default async (msg: Message) => {
             // Run the command
             if (command) command(msg, cache);
         } catch (error) {
-            log.warn({ error, msg: "Error when running command" });
+            console.log(error);
+            logger.warn({
+                error: {
+                    message: error.message,
+                    stack: error.stack
+                },
+                msg: "Failed collecting report"
+            });
         }
     }
 };

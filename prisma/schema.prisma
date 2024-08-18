@@ -82,11 +82,13 @@ model historybimbingan {
 }
 
 model chat {
-  id           Int      @id @default(autoincrement())
+  id           String @id
   msgKey       String
   senderJid    String
   type         String
-  content      String
+  content      String?
+  mediaPath    String?
+  rawContent   String
 }
 
 enum pembimbing_status_pbb {

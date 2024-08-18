@@ -2,13 +2,27 @@
   "key": {
     "remoteJid": "6288989843040@s.whatsapp.net",
     "fromMe": false,
-    "id": "3EB0CB057ECC93E9A0A4F4"
+    "id": "3EB0E9E147BB845F178BC4"
   },
-  "messageTimestamp": 1723906912,
+  "messageTimestamp": 1723964049,
   "pushName": "Anka Tama",
   "broadcast": false,
   "message": {
-    "conversation": "selesai",
+    "extendedTextMessage": {
+      "text": "hapus",
+      "contextInfo": {
+        "stanzaId": "3EB03F4E3503330AECFF03",
+        "participant": "6288989843040@s.whatsapp.net",
+        "quotedMessage": {
+          "conversation": "fgh"
+        },
+        "disappearingMode": {
+          "initiator": "CHANGED_IN_CHAT",
+          "trigger": "CHAT_SETTING"
+        }
+      },
+      "inviteLinkGroupTypeV2": "DEFAULT"
+    },
     "messageContextInfo": {
       "deviceListMetadata": {
         "senderKeyHash": "edON9MR2Iw1+8A==",
