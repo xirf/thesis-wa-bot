@@ -1,11 +1,11 @@
-import Message from "../../lib/message";
+import { Message } from "whatsapp-web.js"
 import database from "../../database"
 
 export default async (msg: Message): Promise<{ student: any, error: boolean }> => {
     let student = await database.mahasiswa.findFirst({
         where: {
             telepon: {
-                contains: msg.sender.split("@")[ 0 ].slice(-10)
+                contains: msg.from.split("@")[ 0 ].slice(-10)
             }
         },
         select: {

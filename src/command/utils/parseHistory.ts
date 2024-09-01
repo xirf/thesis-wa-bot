@@ -1,10 +1,11 @@
-import Message from "../../lib/message"
 import logger from "../../utils/logger"
 import database from "../../database"
 import response from "../../../config/response.json"
 import generatePDF from "../../utils/generatePDF"
 import { readFileSync, unlinkSync } from "fs"
 import path from "path"
+import { Message, MessageMedia } from "whatsapp-web.js"
+import client from "../../lib/waweb"
 
 
 export default (msg: Message, MahasiswaID: number): Promise<void> => {
@@ -48,7 +49,7 @@ export default (msg: Message, MahasiswaID: number): Promise<void> => {
                 replace("{{messages}}", chats)
                 .replace("{{name}}", history.filter(({ type }) => type == "mahasiswa")[ 0 ].senderName))
 
-            
+
             if (pdf.includes("Failed to generate PDF, reason:")) {
                 msg.reply(response.error.failedToGeneratePDF)
                 return;
@@ -57,11 +58,19 @@ export default (msg: Message, MahasiswaID: number): Promise<void> => {
             const pdfBuffer = await readFileSync(pdf)
 
 
-            await msg.reply({
-                fileName: `history-bimbingan-${(new Date).toLocaleString()}.pdf`,
-                document: pdfBuffer,
-                mimetype: "application/pdf",
-                caption: response.history,
+            // await msg.reply({
+            //     fileName: `history-bimbingan-${(new Date).toLocaleString()}.pdf`,
+            //     document: pdfBuffer,
+            //     mimetype: "application/pdf",
+            //     caption: response.history,
+            // })
+            // buffer to base654
+            const base64 = pdfBuffer.toString('base64')
+            const media = new MessageMedia('application/pdf', base64, 'history-bimbingan.pdf')
+
+
+            client.sendMessage(msg.from, media, {
+                caption: response.history
             })
 
             unlinkSync(pdf)

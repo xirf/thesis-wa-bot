@@ -1,51 +1,53 @@
 import { Command } from "../../types";
-import Message from "../../lib/message";
 import response from "../../../config/response.json";
 import logger from "../../utils/logger";
 import { sendReport } from "../shared/sendReport";
 import database from "../../database";
-import { proto } from "@whiskeysockets/baileys";
+import { Message } from "whatsapp-web.js";
+import client from "../../lib/waweb";
 
 const command: Command = async (msg: Message, cache: any) => {
     try {
-        let text: string | null = msg.text;
+        let text: string | null = msg.body;
 
         if (text?.toLowerCase() == "batal") {
             msg.reply(response.canceled);
-            cache.set(msg.sender, { data: cache.data })
+            cache.set(msg.from, { data: cache.data })
             return;
         } else if (text?.toLowerCase() == "selesai") {
             if (cache.msgs == undefined || cache.msgs.length == 0)
                 return await msg.reply(response.error.emptyReport);
 
-            return await sendReport(msg, cache.msgs, cache.get(msg.sender), "student");
+            return await sendReport(msg, cache.msgs, cache.get(msg.from), "student");
         } else if (text?.toLowerCase() == "hapus") {
             if (cache.msgs == undefined || cache.msgs.length == 0)
                 return await msg.reply(response.error.emptyReport);
 
-            cache.msgs = cache.msgs.filter((message: string) => message != msg.quotedStanzaId)
+            cache.msgs = cache.msgs.filter((message: any) => message != msg.mentionedIds[ 0 ]);
             await msg.react("🚫")
 
             let savedMessage = await database.chat.findFirst({
                 where: {
-                    id: msg.quotedStanzaId
+                    id: msg.id.id
                 }
             })
 
             console.log(savedMessage);
 
             if (savedMessage) {
-                let _msgKey: proto.IWebMessageInfo = JSON.parse(savedMessage.rawContent)
-                msg.sendText(msg.sender, response.messageCanceled, { quoted: _msgKey })
+                let _msgKey: any = JSON.parse(savedMessage.id)
+                client.sendMessage(msg.from, response.messageCanceled, {
+                    quotedMessageId: _msgKey
+                })
             }
         } else {
-            await msg.react();
+            await msg.react("📝");
 
             if (cache.msgs == undefined) cache.msgs = [];
-            cache.msgs.push(msg.stanzaId);
+            cache.msgs.push(msg.id.id);
         }
 
-        return await cache.set(msg.sender, cache.get(msg.sender));
+        return await cache.set(msg.from, cache.get(msg.from));
     } catch (error) {
         console.log(error);
         logger.warn({

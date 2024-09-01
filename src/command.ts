@@ -3,7 +3,6 @@ import chats from "./command/chats";
 import database from "./database";
 import getReportHistory from "./command/utils/getReportHistory";
 import logger from "./utils/logger";
-import Message from "./lib/message";
 import os from "node:os";
 import packageJson from "../package.json";
 import parseTime from "./utils/parseTime";
@@ -13,29 +12,29 @@ import templateParser from "./utils/templateParser";
 import type { Command } from "./types";
 import checkStudent from "./command/utils/checkStudent";
 import starightToLecturer from "./command/utils/starightToLecturer";
+import WAWebJS from "whatsapp-web.js";
 
 const log = logger.child({ module: "command" });
 
-export default async (msg: Message) => {
-    let isLecturer = await database.dosen.findFirst({ where: { telepon: { contains: msg.sender.split("@")[ 0 ].slice(-10) } } });
-    let cachedData: any = cache.get(msg.sender);
-
+export default async (msg: WAWebJS.Message) => {
+    let isLecturer = await database.dosen.findFirst({ where: { telepon: { contains: msg.from.split("@")[ 0 ].slice(-10) } } });
+    let cachedData: any = cache.get(msg.from);
 
     // Check if the message is a reply and a valid reply
-    if (msg.quoted !== null) {
+    if (msg.getQuotedMessage !== null) {
         let res = await chats(msg, isLecturer)
         if (res) return;
     }
 
     // This part is for the default command
     // Keep on top to trap the message and not treated as next step
-    switch (msg.command) {
+    switch (msg.body.toLowerCase().replace(process.env.PREFIX || "/", "")) {
         case "start":
         case "help":
-            cache.del(msg.sender)
+            cache.del(msg.from)
             if (isLecturer) {
                 msg.reply(response.start.lecturer);
-                cache.set(msg.sender, { event: "lecturer.checkNIM" })
+                cache.set(msg.from, { event: "lecturer.checkNIM" })
             } else {
                 checkStudent(msg);
             }
@@ -44,11 +43,11 @@ export default async (msg: Message) => {
         case "ping":
             msg.reply("Pong!");
             return;
-        
+
         case "to1":
         case "to2":
             if (isLecturer) return;
-            starightToLecturer(msg, msg.command);
+            starightToLecturer(msg, msg.body);
             break;
 
         case "report":

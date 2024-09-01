@@ -1,22 +1,23 @@
 import { Command } from "../../types";
-import Message from "../../lib/message";
 import response from "../../../config/response.json";
 import logger from "../../utils/logger";
 import templateParser from "../../utils/templateParser";
+import { Message } from "whatsapp-web.js";
+import client from "../../lib/waweb";
 
 const command: Command = async (msg: Message, cache) => {
     try {
         // try to get number from message
-        let isNumber = msg.text?.match(/\d+/g);
-        let cachedData: any = (cache.get(msg.sender)).data;
+        let isNumber = msg.body?.match(/\d+/g);
+        let cachedData: any = (cache.get(msg.from)).data;
 
         // if there is no number, return error
-        if (!isNumber && msg.text?.toLowerCase() !== "semua") {
+        if (!isNumber && msg.body?.toLowerCase() !== "semua") {
             msg.reply(response.error.invalidLecturer);
             return;
         }
 
-        if (isNumber && msg.text.toLowerCase() !== "semua") {
+        if (isNumber && msg.body.toLowerCase() !== "semua") {
             let number = parseInt(isNumber[ 0 ])
             cachedData.lecturer = [ cachedData.lecturer[ number - 1 ] ];
         }
@@ -29,10 +30,10 @@ const command: Command = async (msg: Message, cache) => {
             })
         );
 
-        await msg.sendText(msg.sender, response.lecturerSet[ 1 ]);
-        await msg.sendText(msg.sender, response.lecturerSet[ 2 ]);
+        await client.sendMessage(msg.from, response.lecturerSet[ 1 ]);
+        await client.sendMessage(msg.from, response.lecturerSet[ 2 ]);
 
-        cache.set(msg.sender, {
+        cache.set(msg.from, {
             event: "student.collectReport",
             data: cachedData
         })
@@ -48,3 +49,5 @@ const command: Command = async (msg: Message, cache) => {
 
 
 export default command;
+
+

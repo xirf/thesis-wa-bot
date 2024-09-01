@@ -1,9 +1,10 @@
-import Message from "../../lib/message";
 import getStudent from "./getStudent";
 import cache from "../../cache/cache";
 import response from "../../../config/response.json";
 import templateParser from "../../utils/templateParser";
 import logger from "../../utils/logger";
+import { Message } from "whatsapp-web.js";
+import client from "../../lib/waweb";
 
 export default async (msg: Message, command: string) => {
     try {
@@ -34,7 +35,7 @@ export default async (msg: Message, command: string) => {
             })
         }
 
-        cache.set(msg.sender, {
+        cache.set(msg.from, {
             event: "student.collectReport",
             data: reformattedData
         })
@@ -59,10 +60,12 @@ export default async (msg: Message, command: string) => {
             })
         );
 
-        await msg.sendText(msg.sender, response.lecturerSet[ 1 ]);
-        await msg.sendText(msg.sender, response.lecturerSet[ 2 ]);
+        // await msg.sendText(msg.sender, response.lecturerSet[ 1 ]);
+        // await msg.sendText(msg.sender, response.lecturerSet[ 2 ]);
+        await client.sendMessage(msg.from, response.lecturerSet[ 1 ]);
+        await client.sendMessage(msg.from, response.lecturerSet[ 2 ]);
 
-        cache.set(msg.sender, {
+        cache.set(msg.from, {
             event: "student.collectReport",
             data: reformattedData
         })

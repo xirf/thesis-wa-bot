@@ -12,7 +12,7 @@ import separateMediaAndTextReports from "../../utils/separateMediaAndText";
 export async function sendReport(msg: Message, msgs: string[], cachedData: any, type: 'lecturer' | 'student' = 'student') {
     try {
         const allReports = await fetchReports(msgs);
-        console.log(allReports);
+        console.log("allReports", allReports);
         if (allReports.length === 0) {
             handleEmptyReport(msg, cachedData, type);
             return;
@@ -32,10 +32,10 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
 }
 
 async function fetchReports(msgs: string[]) {
-    console.log(msgs);
+    console.log("passed", msgs);
     return await database.chat.findMany({
         where: {
-            msgKey: {
+            id: {
                 in: msgs
             }
         }

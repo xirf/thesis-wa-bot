@@ -1,8 +1,9 @@
-import Message from "../../lib/message"
 import response from ",./../../config/response.json"
+import { Message } from "whatsapp-web.js"
 import cache from "../../cache/cache"
 import templateParser from "../../utils/templateParser"
 import getStudent from "./getStudent"
+import client from "../../lib/waweb"
 
 export default async (msg: Message) => {
     let { student, error } = await getStudent(msg);
@@ -40,11 +41,11 @@ export default async (msg: Message) => {
     });
 
 
-    cache.set(msg.sender, {
+    cache.set(msg.from, {
         event: "student.setPembimbing",
         data: reformattedData
     })
 
     await msg.reply(message);
-    await msg.sendText(msg.sender, response.nimFound.student);
+    await client.sendMessage(msg.from, response.nimFound.student)
 }       

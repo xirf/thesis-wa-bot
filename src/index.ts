@@ -1,10 +1,11 @@
 require("dotenv").config();
 
-import client from "./lib/client";
+// import client from "./lib/client";
 import database from "./database";
 import logger from "./utils/logger";
 import server from "./web";
 import removeOldChatInDb from "./utils/removeOldChatInDb";
+import client from "./lib/waweb";
 
 const DB_CONNECTION_ERROR = "Error when connecting to database";
 
@@ -20,16 +21,18 @@ async function startApp() {
         server();
 
         // Don't run the bot if had argument -w (web only) 
-        if (process.argv.includes("-w")) {   
+        if (process.argv.includes("-w")) {
             logger.warn("Using -w WhatsApp won't started")
-        } else {   
-            logger.info("Starting WhatsApp client...");
+        } else {
+            logger.info("Starting WhatsApp client in 2 seconds...");
             setTimeout(() => {
-                client.connect();
+                logger.info("Starting WhatsApp client...");
+                client.initialize();
+                
+                logger.info("Starting cronjob task...");
+                removeOldChatInDb();
             }, 2000);
 
-            logger.info("Starting cronjob task...");
-            removeOldChatInDb();
         }
     } catch (error) {
         console.error(error);
