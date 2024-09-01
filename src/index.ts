@@ -25,6 +25,7 @@ async function startApp() {
             logger.warn("Using -w WhatsApp won't started")
         } else {
             logger.info("Starting WhatsApp client in 2 seconds...");
+            logger.warn("Don't send message  before client started or it wouldn't be processed")
             setTimeout(() => {
                 logger.info("Starting WhatsApp client...");
                 client.initialize();

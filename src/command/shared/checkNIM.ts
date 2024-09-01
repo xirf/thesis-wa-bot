@@ -1,15 +1,16 @@
 import database from "../../database";
-import Message from "../../lib/message";
 import response from "../../../config/response.json";
 import logger from "../../utils/logger";
 import templateParser from "../../utils/templateParser";
+import { Message } from "whatsapp-web.js";
+import client from "../../lib/waweb";
 
 export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = 'student') => {
     try {
         let studentInfo = await database.mahasiswa.findFirst({
             where: {
                 nim: {
-                    equals: msg.text
+                    equals: msg.body
                 }
             },
             select: {
@@ -44,7 +45,7 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
         if (!studentInfo.ta[ 0 ]) {
             msg.reply(response.error.TA.notFound)
             try {
-                cache.del(msg.sender)
+                cache.del(msg.from)
             } catch (e) {
                 logger.warn("User not found and cant clear cache. file: src/command/shared/checknim.ts")
             } finally {
@@ -75,7 +76,7 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
         });
 
 
-        cache.set(msg.sender, {
+        cache.set(msg.from, {
             event: type == 'student' ? "student.setPembimbing" : "lecturer.giveReport",
             data: reformattedData
         })
@@ -83,9 +84,9 @@ export default async (msg: Message, cache: any, type: 'student' | 'lecturer' = '
 
         await msg.reply(message);
         if (type == 'student')
-            await msg.sendText(msg.sender, response.nimFound.student);
+            client.sendMessage(msg.from, response.nimFound.student)
         else
-            await msg.sendText(msg.sender, response.nimFound.lecturer);
+            client.sendMessage(msg.from, response.nimFound.lecturer)
 
         return;
     } catch (error) {

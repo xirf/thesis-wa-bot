@@ -47,7 +47,7 @@ client.on('message', async (msg) => {
             writeFileSync(mediaPath, media.data);
         }
 
-        database.chat.create({
+        await database.chat.create({
             data: {
                 id: msg.id.id,
                 msgKey: JSON.stringify(msg.id),

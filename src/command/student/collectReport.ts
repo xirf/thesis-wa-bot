@@ -32,13 +32,12 @@ const command: Command = async (msg: Message, cache: any) => {
                 }
             })
 
-            console.log(savedMessage);
-
             if (savedMessage) {
-                let _msgKey: any = JSON.parse(savedMessage.id)
-                client.sendMessage(msg.from, response.messageCanceled, {
-                    quotedMessageId: _msgKey
-                })
+                try {
+                    client.sendMessage(msg.from, response.messageCanceled)
+                } catch (error) {
+                    logger.error({error}, "Failed to send reply message")
+                }
             }
         } else {
             await msg.react("📝");

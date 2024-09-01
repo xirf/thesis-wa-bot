@@ -1,5 +1,5 @@
+import { Message } from "whatsapp-web.js";
 import database from "../database";
-import Message from "../lib/message";
 import logger from "./logger";
 
 export default async function saveReportToDatabase(msg: Message, cachedData: any, type: string, msgs: string[]) {
@@ -18,7 +18,7 @@ export default async function saveReportToDatabase(msg: Message, cachedData: any
             },
             type: type === 'lecturer' ? 'pembimbing' : 'mahasiswa',
             senderName: cachedData.data.name,
-            senderNumber: msg.sender.split("@")[ 0 ],
+            senderNumber: msg.from.split("@")[ 0 ],
             content: msgs.map((msg, i) => `${i + 1}. ${msg}`).join("\n")
         }
     });

@@ -1,13 +1,12 @@
-import Message from "../../lib/message";
 import response from "../../../config/response.json";
 import logger from "../../utils/logger";
 import templateParser from "../../utils/templateParser";
 import database from "../../database";
 import cache from "../../cache/cache";
-import { AnyMediaMessageContent } from "@whiskeysockets/baileys";
-import { readFileSync } from "fs";
 import saveReportToDatabase from "../../utils/saveReportToDatabase";
 import separateMediaAndTextReports from "../../utils/separateMediaAndText";
+import { Message, MessageMedia } from "whatsapp-web.js";
+import client from "../../lib/waweb";
 
 export async function sendReport(msg: Message, msgs: string[], cachedData: any, type: 'lecturer' | 'student' = 'student') {
     try {
@@ -27,7 +26,7 @@ export async function sendReport(msg: Message, msgs: string[], cachedData: any, 
     } catch (error) {
         handleError(msg, error, type);
     } finally {
-        cache.del(msg.sender);
+        cache.del(msg.from);
     }
 }
 
@@ -58,33 +57,19 @@ function generateReportText(cachedData: any, type: string, reportText: string) {
 
 async function sendMediaMessages(msg: Message, media: any[], target: string) {
     for (const { mediaPath, type, content } of media) {
-        // @ts-expect-error -  not implemented yet
-        let mediaContent: AnyMediaMessageContent = {};
-        switch (type) {
-            case "videoMessage":
-                mediaContent = { video: readFileSync(mediaPath) };
-                break;
-            case "imageMessage":
-                mediaContent = { image: readFileSync(mediaPath) };
-                break;
-            case "audioMessage":
-                mediaContent = { audio: readFileSync(mediaPath), mimetype: "audio/mp3" };
-                break;
-            default: return;
-        }
-
-        if (content) {
-            mediaContent = { ...mediaContent, caption: content };
-        }
-
-        await msg.sendMedia(target, mediaContent);
+        // await msg.sen(target, mediaContent);
+        let mediaMessage = MessageMedia.fromFilePath(mediaPath)
+        client.sendMessage(target, mediaMessage, {
+            caption: content ?? "Lampiran",
+            quotedMessageId: msg.id.id
+        });
     }
 }
 
 async function sendReportToLecturers(msg: Message, cachedData: any, type: string, text: string, media: any[]) {
     if (type === 'lecturer') {
         cachedData.name = cachedData.lecturer.filter(({ telepon }) => {
-            return msg.sender.split("@")[ 0 ].slice(-8) === telepon.slice(-8);
+            return msg.from.split("@")[ 0 ].slice(-8) === telepon.slice(-8);
         }).map(({ name }) => name)[ 0 ];
     }
 
@@ -92,9 +77,10 @@ async function sendReportToLecturers(msg: Message, cachedData: any, type: string
 
     for (const { telepon, name } of lecturers) {
         let phoneNumber = telepon.startsWith("0") ? telepon.replace("0", "62") : telepon;
-        const [ result ] = await msg.socket.onWhatsApp(phoneNumber);
 
-        if (!result || result.exists === undefined) {
+        const result = await client.isRegisteredUser(phoneNumber);
+
+        if (!result) {
             logger.warn(`${type} ${name.substring(0, 10)} with number ${phoneNumber} doesn't exist on WhatsApp`);
             await msg.reply(templateParser(response.reportNotSent, {
                 lecturer: name.substring(0, 20),
@@ -103,9 +89,14 @@ async function sendReportToLecturers(msg: Message, cachedData: any, type: string
             continue;
         }
 
-        if (result.exists) {
-            await msg.sendText(result.jid, text);
-            await sendMediaMessages(msg, media, result.jid);
+        if (result) {
+            let number = await client.getNumberId(phoneNumber)
+            // await msg.sendText(result.jid, text);
+            await client.sendMessage(number.user, text);
+            // await client.sendMessage(number.user, text);
+            await sendMediaMessages(msg, media, number.user);
+
+
             await msg.reply(templateParser(response.reportSent, {
                 lecturer: type === "lecturer" ? name.substring(0, 20) : "Pembimbing",
             }));
