@@ -56,6 +56,8 @@ function generateReportText(cachedData: any, type: string, reportText: string) {
 }
 
 async function sendMediaMessages(msg: Message, media: any[], target: string) {
+    if (media.length < 1) return;
+    logger.info(JSON.stringify(media))
     for (const { mediaPath, type, content } of media) {
         // await msg.sen(target, mediaContent);
         let mediaMessage = MessageMedia.fromFilePath(mediaPath)
@@ -79,7 +81,8 @@ async function sendReportToLecturers(msg: Message, cachedData: any, type: string
         let phoneNumber = telepon.startsWith("0") ? telepon.replace("0", "62") : telepon;
 
         const result = await client.isRegisteredUser(phoneNumber);
-
+        logger.info(JSON.stringify(result))
+        
         if (!result) {
             logger.warn(`${type} ${name.substring(0, 10)} with number ${phoneNumber} doesn't exist on WhatsApp`);
             await msg.reply(templateParser(response.reportNotSent, {
@@ -88,14 +91,11 @@ async function sendReportToLecturers(msg: Message, cachedData: any, type: string
             }));
             continue;
         }
-
+        
         if (result) {
             let number = await client.getNumberId(phoneNumber)
-            // await msg.sendText(result.jid, text);
-            await client.sendMessage(number.user, text);
-            // await client.sendMessage(number.user, text);
-            await sendMediaMessages(msg, media, number.user);
-
+            await client.sendMessage(number._serialized, text);
+            await sendMediaMessages(msg, media, number._serialized);
 
             await msg.reply(templateParser(response.reportSent, {
                 lecturer: type === "lecturer" ? name.substring(0, 20) : "Pembimbing",
